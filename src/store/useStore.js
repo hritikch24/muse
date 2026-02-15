@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 const generateMockProfiles = () => {
+  try {
   const indianNames = [
     'Aisha', 'Priya', 'Ananya', 'Sneha', 'Riya', 'Kavya', 'Neha', 'Pooja', 'Shruti', 'Divya',
     'Aditya', 'Raj', 'Arjun', 'Vikram', 'Arnav', 'Aryan', 'Karan', 'Rohan', 'Ishaan', 'Dhruv',
@@ -10,42 +11,39 @@ const generateMockProfiles = () => {
   ];
   
   const indianBios = [
-    'Software Engineer 💻 | Coffee addict | Dog lover',
-    'Marketing Professional 📱 | Travel enthusiast | Foodie',
-    'Doctor by day ✨ | Dancer by night | Adventure seeker',
-    'CA | Chess player | Book worm 📚',
-    'Designer 🎨 | Nature lover | Coffee enthusiast',
-    ' MBA | Gym rat | Netflix binger',
-    'Engineer 🚀 | Music lover | Party animal',
-    'Teacher 📖 | Art lover | Vegan foodie',
-    'Chef 👩‍🍳 | Travel blogger | Cat mom',
-    'Photographer 📸 | Fashionista | Coffee lover'
+    'Software Engineer | Coffee addict | Dog lover',
+    'Marketing Professional | Travel enthusiast | Foodie',
+    'Doctor by day | Dancer by night',
+    'CA | Chess player | Book worm',
+    'Designer | Nature lover | Coffee enthusiast',
+    'MBA | Gym rat | Netflix binger',
+    'Engineer | Music lover | Party animal',
+    'Teacher | Art lover | Vegan foodie',
+    'Chef | Travel blogger | Cat mom',
+    'Photographer | Fashionista | Coffee lover'
   ];
   
   const westernBios = [
-    'Coffee lover ☕ | Dog mom 🐕 | Adventure seeker',
+    'Coffee lover | Dog mom | Adventure seeker',
     'Yoga instructor | Plant mom | Beach vibes',
     'Foodie at heart | Travel addict | Movie nights',
-    'Tech geek by day, dancer by night 💃',
-    'Book worm 📚 | Cat person | Sarcasm is my superpower',
-    'Chef 👩‍🍳 | Wine enthusiast | Let\'s grab a pizza',
-    'Photographer 📸 | Music festival regular | Dog lover',
+    'Tech geek by day, dancer by night',
+    'Book worm | Cat person | Sarcasm is my superpower',
+    'Chef | Wine enthusiast',
+    'Photographer | Music festival regular | Dog lover',
     'Marketing guru | Brunch enthusiast | Netflix binger',
-    'Nurse by profession | Wanderlust soul | Dog mom',
-    'Artist 🎨 | Coffee addict | Looking for my partner in crime'
+    'Nurse by profession | Wanderlust soul',
+    'Artist | Coffee addict'
   ];
   
-  const interests = ['Travel', 'Music', 'Food', 'Fitness', 'Reading', 'Movies', 'Art', 'Cooking', 'Photography', 'Yoga', 'Gaming', 'Dancing', 'Hiking', 'Wine', 'Coffee', 'Fashion', 'Tech', 'Gym', 'Cooking', 'Nature'];
+  const interests = ['Travel', 'Music', 'Food', 'Fitness', 'Reading', 'Movies', 'Art', 'Cooking', 'Photography', 'Yoga', 'Gaming', 'Dancing', 'Hiking', 'Wine', 'Coffee', 'Fashion', 'Tech', 'Gym', 'Nature'];
   
   const prompts = [
     { question: 'My simple pleasure', answer: 'Morning coffee on the balcony' },
-    { question: 'I\'m overly competitive about', answer: 'Board game nights' },
+    { question: 'I am overly competitive about', answer: 'Board game nights' },
     { question: 'My type?', answer: 'Someone who makes me laugh' },
     { question: 'Ideal first date', answer: 'Something fun and adventurous' },
-    { question: 'A fact about me', answer: 'I\'ve been to 15 countries!' },
-    { question: 'My simple pleasure', answer: 'Street food at night markets 🌙' },
-    { question: 'I\'m overly competitive about', answer: ' IPL cricket matches' },
-    { question: 'My type?', answer: 'Someone who loves Bollywood & Netflix' }
+    { question: 'A fact about me', answer: 'I have been to 15 countries!' }
   ];
 
   const allNames = [...indianNames];
@@ -55,11 +53,9 @@ const generateMockProfiles = () => {
 
   // Generate 40 profiles - mix of Indian and Western
   return Array.from({ length: 40 }, (_, i) => {
-    const isIndian = i < 30; // First 30 are Indian
+    const isIndian = i < 30;
     const isWomen = i % 2 === 0;
-    const seed = isIndian ? 1000 + i : 2000 + (i - 30);
     
-    // Use randomuser.me which has real-looking photos
     const gender = isWomen ? 'women' : 'men';
     const photoIndex = (i * 7) % 99;
     
@@ -80,9 +76,13 @@ const generateMockProfiles = () => {
       location: cities[i % cities.length],
       distance: Math.floor(Math.random() * 30) + 1,
       online: Math.random() > 0.6,
-      lastActive: Math.random() > 0.5 ? 'Now' : `${Math.floor(Math.random() * 24)}+h ago`
+      lastActive: Math.random() > 0.5 ? 'Now' : (Math.floor(Math.random() * 24) + 1) + 'h ago'
     };
   });
+  } catch (e) {
+    console.error('Error generating profiles:', e);
+    return [];
+  }
 };
 
 const useStore = create(
