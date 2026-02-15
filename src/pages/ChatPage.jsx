@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaPaperPlane, FaMicrophone, FaVideo, FaEllipsisH, FaCheck, FaCheckDouble, FaBolt } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
