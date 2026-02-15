@@ -14,6 +14,7 @@ const STEPS = [
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -28,6 +29,7 @@ export default function OnboardingPage() {
   });
   const navigate = useNavigate();
   const signup = useStore(state => state.signup);
+  const updateCurrentUser = useStore(state => state.updateCurrentUser);
   const photoInputRef = useRef(null);
 
   const interestsList = [
@@ -36,21 +38,90 @@ export default function OnboardingPage() {
     'Hiking', 'Wine', 'Coffee', 'Fashion', 'Nature', 'Tech'
   ];
 
+  const validateStep = (step) => {
+    const newErrors = {};
+    
+    if (step === 0) {
+      if (formData.photos.length === 0) {
+        newErrors.photos = 'Please add at least one photo';
+      }
+    }
+    
+    if (step === 1) {
+      if (!formData.name.trim()) {
+        newErrors.name = 'Name is required';
+      } else if (formData.name.trim().length < 2) {
+        newErrors.name = 'Name must be at least 2 characters';
+      } else if (formData.name.trim().length > 50) {
+        newErrors.name = 'Name must be less than 50 characters';
+      } else if (!/^[a-zA-Z\s'-]+$/.test(formData.name.trim())) {
+        newErrors.name = 'Name can only contain letters, spaces, hyphens, and apostrophes';
+      }
+      
+      if (!formData.age) {
+        newErrors.age = 'Age is required';
+      } else {
+        const ageNum = parseInt(formData.age, 10);
+        if (isNaN(ageNum) || ageNum < 18) {
+          newErrors.age = 'You must be at least 18 years old';
+        } else if (ageNum > 99) {
+          newErrors.age = 'Please enter a valid age';
+        }
+      }
+      
+      if (formData.bio.length > 500) {
+        newErrors.bio = 'Bio must be less than 500 characters';
+      }
+    }
+    
+    if (step === 2) {
+      if (formData.interests.length === 0) {
+        newErrors.interests = 'Please select at least one interest';
+      }
+    }
+    
+    if (step === 3) {
+      const hasAtLeastOnePrompt = formData.prompts.some(p => p.answer.trim().length > 0);
+      if (!hasAtLeastOnePrompt) {
+        newErrors.prompts = 'Please answer at least one prompt';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validateStep(currentStep)) {
+      return;
+    }
+    
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      signup({
-        ...formData,
-        location: 'Your Location',
-        distance: 0,
-        onboardingCompleted: true
-      });
-      navigate('/');
+      const currentUser = useStore.getState().currentUser;
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          name: formData.name || currentUser.name,
+          age: parseInt(formData.age, 10) || currentUser.age,
+          bio: formData.bio || currentUser.bio,
+          photos: formData.photos.length > 0 ? formData.photos : currentUser.photos,
+          interests: formData.interests.length > 0 ? formData.interests : currentUser.interests,
+          prompts: formData.prompts || currentUser.prompts,
+          location: 'Your Location',
+          distance: 0,
+          onboardingCompleted: true
+        };
+        
+        updateCurrentUser(updatedUser);
+        navigate('/');
+      }
     }
   };
 
   const handleBack = () => {
+    setErrors({});
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
@@ -58,13 +129,30 @@ export default function OnboardingPage() {
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file && formData.photos.length < 6) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData({ ...formData, photos: [...formData.photos, event.target.result] });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setErrors({ ...errors, photos: 'Please upload a JPG, PNG, or WebP image' });
+      return;
     }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors({ ...errors, photos: 'Image must be less than 5MB' });
+      return;
+    }
+    
+    if (formData.photos.length >= 6) {
+      setErrors({ ...errors, photos: 'Maximum 6 photos allowed' });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData({ ...formData, photos: [...formData.photos, event.target.result] });
+      setErrors({ ...errors, photos: '' });
+    };
+    reader.readAsDataURL(file);
   };
 
   const addPhoto = () => {
@@ -140,7 +228,7 @@ export default function OnboardingPage() {
               <input
                 type="file"
                 ref={photoInputRef}
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 onChange={handlePhotoUpload}
                 style={{ display: 'none' }}
               />
@@ -172,6 +260,7 @@ export default function OnboardingPage() {
                   <span>Add Photo</span>
                 </motion.button>
               )}
+              {errors.photos && <p style={styles.errorText}>{errors.photos}</p>}
             </div>
           )}
 
@@ -182,32 +271,43 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  style={styles.input}
+                  onChange={(e) => {
+                    setFormData({...formData, name: e.target.value});
+                    if (errors.name) setErrors({...errors, name: ''});
+                  }}
+                  style={errors.name ? {...styles.input, ...styles.inputError} : styles.input}
                   placeholder="Your name"
+                  maxLength={50}
                 />
+                {errors.name && <p style={styles.errorText}>{errors.name}</p>}
               </div>
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Age</label>
                 <input
                   type="number"
                   value={formData.age}
-                  onChange={(e) => setFormData({...formData, age: e.target.value})}
-                  style={styles.input}
+                  onChange={(e) => {
+                    setFormData({...formData, age: e.target.value});
+                    if (errors.age) setErrors({...errors, age: ''});
+                  }}
+                  style={errors.age ? {...styles.input, ...styles.inputError} : styles.input}
                   placeholder="Your age"
                   min={18}
                   max={99}
                 />
+                {errors.age && <p style={styles.errorText}>{errors.age}</p>}
               </div>
               <div style={styles.inputGroup}>
-                <label style={styles.label}>Bio</label>
+                <label style={styles.label}>Bio <span style={styles.charCount}>({formData.bio.length}/500)</span></label>
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  style={styles.textarea}
+                  style={errors.bio ? {...styles.textarea, ...styles.inputError} : styles.textarea}
                   placeholder="Tell us about yourself..."
                   rows={4}
+                  maxLength={500}
                 />
+                {errors.bio && <p style={styles.errorText}>{errors.bio}</p>}
               </div>
             </div>
           )}
@@ -231,6 +331,7 @@ export default function OnboardingPage() {
               <p style={styles.interestsHint}>
                 Select up to 5 interests ({formData.interests.length}/5)
               </p>
+              {errors.interests && <p style={styles.errorText}>{errors.interests}</p>}
             </div>
           )}
 
@@ -244,14 +345,17 @@ export default function OnboardingPage() {
                     value={prompt.answer}
                     onChange={(e) => {
                       const newPrompts = [...formData.prompts];
-                      newPrompts[index].answer = e.target.value;
+                      newPrompts[index].answer = e.target.value.slice(0, 100);
                       setFormData({...formData, prompts: newPrompts});
                     }}
                     style={styles.promptInput}
                     placeholder="Write your answer..."
+                    maxLength={100}
                   />
+                  <span style={styles.charCountSmall}>{prompt.answer.length}/100</span>
                 </div>
               ))}
+              {errors.prompts && <p style={styles.errorText}>{errors.prompts}</p>}
             </div>
           )}
         </motion.div>
@@ -268,6 +372,7 @@ export default function OnboardingPage() {
         <button 
           style={{...styles.navBtn, ...styles.navBtnNext}}
           onClick={handleNext}
+          data-testid="onboarding-next"
         >
           {currentStep === STEPS.length - 1 ? 'Get Started' : 'Continue'}
         </button>
@@ -541,5 +646,28 @@ const styles = {
     border: 'none',
     color: '#fff',
     boxShadow: '0 4px 20px rgba(233,30,99,0.3)',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: '14px',
+    marginTop: '8px',
+    textAlign: 'center',
+    width: '100%',
+  },
+  inputError: {
+    border: '1px solid #F44336 !important',
+    background: 'rgba(244,67,54,0.1) !important',
+  },
+  charCount: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: '12px',
+    float: 'right',
+  },
+  charCountSmall: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: '11px',
+    display: 'block',
+    textAlign: 'right',
+    marginTop: '4px',
   },
 };

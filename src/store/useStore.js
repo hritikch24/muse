@@ -2,6 +2,50 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
+const getStoredUsers = () => {
+  try {
+    const stored = localStorage.getItem('muse_users');
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const simpleHash = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'hash_' + Math.abs(hash).toString(16);
+};
+
+const saveUser = (user) => {
+  try {
+    const users = getStoredUsers();
+    const existingIndex = users.findIndex(u => u.email === user.email);
+    if (existingIndex >= 0) {
+      users[existingIndex] = user;
+    } else {
+      users.push(user);
+    }
+    localStorage.setItem('muse_users', JSON.stringify(users));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const findUserByEmail = (email) => {
+  const users = getStoredUsers();
+  return users.find(u => u.email.toLowerCase() === email.toLowerCase());
+};
+
+const hashPassword = (password) => {
+  return simpleHash(password + 'muse_salt_2024');
+};
+
 const generateMockProfiles = () => {
   try {
   const indianNames = [
@@ -85,12 +129,15 @@ const generateMockProfiles = () => {
   }
 };
 
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000;
+
 const useStore = create(
   persist(
     (set, get) => ({
       // Auth
       currentUser: null,
       isAuthenticated: false,
+      lastActivity: null,
       
       // Profiles
       profiles: generateMockProfiles(),
@@ -227,45 +274,70 @@ const useStore = create(
       },
 
       login: (email, password) => {
-        // For demo purposes, accept any valid email/password
-        if (!email || !password || password.length < 6) {
+        const user = findUserByEmail(email);
+        
+        if (!user) {
+          console.log('User not found. Please sign up first.');
           return false;
         }
         
-        const user = {
-          id: uuidv4(),
-          email,
-          name: 'You',
-          age: 25,
-          bio: 'Looking for something real',
-          photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
-          interests: ['Music', 'Travel', 'Food'],
-          prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
-          location: 'Your Location',
-          distance: 0,
-          // For existing users, onboarding is completed
-          onboardingCompleted: true
-        };
-        set({ currentUser: user, isAuthenticated: true });
+        const hashedInput = hashPassword(password);
+        if (user.password !== hashedInput) {
+          console.log('Invalid password.');
+          return false;
+        }
+        
+        set({ currentUser: user, isAuthenticated: true, lastActivity: Date.now() });
         get().fetchLocation();
         return true;
       },
 
-      signup: (userData) => {
+      signup: (userData, password) => {
+        const existingUser = findUserByEmail(userData.email);
+        if (existingUser) {
+          console.log('User already exists. Please login.');
+          return false;
+        }
+        
+        const now = Date.now();
+        
         const user = {
           id: uuidv4(),
-          ...userData,
+          email: userData.email,
+          password: hashPassword(password),
+          name: userData.name || 'User',
+          age: userData.age || 25,
+          bio: userData.bio || '',
+          photos: userData.photos || ['https://randomuser.me/api/portraits/women/44.jpg'],
+          interests: userData.interests || ['Music', 'Travel', 'Food'],
+          prompts: userData.prompts || [{ question: 'A fact about me', answer: '' }],
+          location: userData.location || 'Your Location',
+          distance: 0,
           matches: [],
           likes: [],
-          // Don't override onboardingCompleted if explicitly set
           onboardingCompleted: userData.onboardingCompleted !== undefined ? userData.onboardingCompleted : false
         };
-        set({ currentUser: user, isAuthenticated: true });
+        
+        saveUser(user);
+        
+        set({ currentUser: user, isAuthenticated: true, lastActivity: now });
         get().fetchLocation();
         return true;
       },
 
-      logout: () => set({ currentUser: null, isAuthenticated: false }),
+      logout: () => set({ currentUser: null, isAuthenticated: false, lastActivity: null }),
+
+      updateLastActivity: () => set({ lastActivity: Date.now() }),
+
+      checkSession: () => {
+        const { lastActivity, isAuthenticated } = get();
+        if (!isAuthenticated || !lastActivity) return false;
+        if (Date.now() - lastActivity > SESSION_TIMEOUT) {
+          set({ currentUser: null, isAuthenticated: false, lastActivity: null });
+          return false;
+        }
+        return true;
+      },
 
       swipeRight: (profileId) => {
         const { profiles, matchedProfiles, currentUser, passedProfiles } = get();
@@ -420,10 +492,50 @@ const useStore = create(
         }));
       },
 
+      markAllNotificationsRead: () => {
+        set(state => ({
+          notifications: state.notifications.map(n => ({ ...n, read: true }))
+        }));
+      },
+
+      clearNotifications: () => {
+        set({ notifications: [] });
+      },
+
+      // Visibility settings
+      setShowOnline: (show) => {
+        set({ showOnline: show });
+      },
+
+      setShowProfile: (show) => {
+        set({ showProfile: show });
+      },
+
       updateUserPhoto: (photoUrl) => {
         set(state => ({
           currentUser: state.currentUser ? { ...state.currentUser, photos: [photoUrl, ...state.currentUser.photos] } : null
         }));
+      },
+
+      updateCurrentUser: (userData) => {
+        const currentUser = get().currentUser;
+        if (currentUser) {
+          const updatedUser = { ...currentUser, ...userData };
+          
+          // Update localStorage
+          try {
+            const users = JSON.parse(localStorage.getItem('muse_users') || '[]');
+            const userIndex = users.findIndex(u => u.id === updatedUser.id);
+            if (userIndex >= 0) {
+              users[userIndex] = updatedUser;
+              localStorage.setItem('muse_users', JSON.stringify(users));
+            }
+          } catch (e) {
+            console.error('Error updating user:', e);
+          }
+          
+          set({ currentUser: updatedUser });
+        }
       }
     }),
     {
@@ -431,6 +543,7 @@ const useStore = create(
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
+        lastActivity: state.lastActivity,
         matchedProfiles: state.matchedProfiles,
         passedProfiles: state.passedProfiles,
         chats: state.chats,
@@ -446,4 +559,5 @@ const useStore = create(
   )
 );
 
+export { findUserByEmail, getStoredUsers, saveUser };
 export default useStore;

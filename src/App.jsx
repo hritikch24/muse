@@ -1,21 +1,37 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useStore from './store/useStore';
-import AuthPage from './pages/AuthPage';
-import OnboardingPage from './pages/OnboardingPage';
-import DiscoveryPage from './pages/DiscoveryPage';
-import MatchesPage from './pages/MatchesPage';
-import ChatPage from './pages/ChatPage';
-import MomentsPage from './pages/MomentsPage';
-import ProfilePage from './pages/ProfilePage';
 import MainLayout from './components/common/MainLayout';
+import ErrorBoundary from './components/common/ErrorBoundary';
+
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const DiscoveryPage = lazy(() => import('./pages/DiscoveryPage'));
+const MatchesPage = lazy(() => import('./pages/MatchesPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const MomentsPage = lazy(() => import('./pages/MomentsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+
+const PageLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f0f1a', color: '#fff' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#FF6B9D', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+      <p>Loading...</p>
+    </div>
+  </div>
+);
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useStore(state => state.isAuthenticated);
   const currentUser = useStore(state => state.currentUser);
+  const checkSession = useStore(state => state.checkSession);
   
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
+  }
+  
+  if (!checkSession()) {
+    return <Navigate to="/auth?session=expired" replace />;
   }
   
   if (currentUser && currentUser.onboardingCompleted === false) {
@@ -27,24 +43,28 @@ function ProtectedRoute({ children }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/" element={
-          <ProtectedRoute>
-            <MainLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<DiscoveryPage />} />
-          <Route path="matches" element={<MatchesPage />} />
-          <Route path="chat/:chatId" element={<ChatPage />} />
-          <Route path="moments" element={<MomentsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<DiscoveryPage />} />
+              <Route path="matches" element={<MatchesPage />} />
+              <Route path="chat/:chatId" element={<ChatPage />} />
+              <Route path="moments" element={<MomentsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

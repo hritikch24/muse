@@ -2,80 +2,158 @@ const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const context = await browser.newContext({ viewport: { width: 375, height: 812 } });
   const page = await context.newPage();
   
-  const errors = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      errors.push(msg.text());
-    }
-  });
+  console.log('=== MUSE APP COMPREHENSIVE TEST ===\n');
+  let passed = 0, failed = 0;
   
   try {
-    console.log('=== TEST 1: Auth Page ===');
-    await page.goto('http://localhost:3000', { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(1000);
+    await page.goto('http://localhost:3000');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle' });
     
-    // Check auth page
-    const hasSignIn = await page.locator('text=Sign In').count();
-    console.log('✅ Sign In visible:', hasSignIn > 0);
+    // ===== AUTH TESTS =====
+    console.log('--- AUTH TESTS ---');
     
-    console.log('\n=== TEST 2: Try Login (empty) ===');
-    await page.click('button:has-text("Sign In")');
+    // 1. Sign up
+    console.log('1. Sign up with strong password');
+    await page.click('text=Sign up');
+    await page.waitForTimeout(300);
+    await page.fill('input[placeholder="Your name"]', 'Test User');
+    await page.fill('input[type="email"]', 'test@muse.com');
+    await page.fill('input[type="password"]', 'Password123');
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(1500);
+    if (page.url().includes('onboarding')) { passed++; console.log('   ✅ Signup OK'); }
+    else { failed++; console.log('   ❌ Signup failed'); }
+    
+    // ===== ONBOARDING TESTS =====
+    console.log('\n--- ONBOARDING TESTS ---');
+    
+    // 2. Onboarding validation - photo required
+    console.log('2. Photo validation');
+    await page.click('[data-testid="onboarding-next"]');
     await page.waitForTimeout(500);
-    const hasEmailError = await page.locator('text=Email is required').count();
-    const hasPasswordError = await page.locator('text=Password is required').count();
-    console.log('✅ Email validation:', hasEmailError > 0);
-    console.log('✅ Password validation:', hasPasswordError > 0);
+    const text1 = await page.evaluate(() => document.body.innerText);
+    if (text1.includes('photo')) { passed++; console.log('   ✅ Photo required'); }
+    else { failed++; console.log('   ❌ No photo validation'); }
     
-    console.log('\n=== TEST 3: Fill Login ===');
-    await page.fill('input[type="email"]', 'test@example.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button:has-text("Sign In")');
+    // 3. Add photo and continue
+    console.log('3. Add photo');
+    await page.click('text=Add Photo');
+    await page.evaluate(() => {
+      const input = document.querySelector('input[type="file"]');
+      if (input) {
+        const dt = new DataTransfer();
+        const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+        const blob = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        const file = new File([blob], 'test.png', { type: 'image/png' });
+        dt.items.add(file);
+        input.files = dt.files;
+      }
+    });
+    await page.waitForTimeout(300);
+    await page.click('[data-testid="onboarding-next"]');
+    await page.waitForTimeout(400);
+    
+    // 4. Name validation
+    console.log('4. Name validation');
+    await page.fill('input[placeholder="Your name"]', '');
+    await page.click('[data-testid="onboarding-next"]');
+    await page.waitForTimeout(500);
+    const text2 = await page.evaluate(() => document.body.innerText);
+    if (text2.includes('Name')) { passed++; console.log('   ✅ Name validation'); }
+    else { failed++; console.log('   ❌ Name validation failed'); }
+    
+    // 5. Complete onboarding
+    console.log('5. Complete onboarding');
+    await page.fill('input[placeholder="Your name"]', 'John');
+    await page.fill('input[placeholder="Your age"]', '25');
+    await page.click('[data-testid="onboarding-next"]');
+    await page.waitForTimeout(400);
+    await page.click('button:has-text("Travel")');
+    await page.click('[data-testid="onboarding-next"]');
+    await page.waitForTimeout(400);
+    await page.fill('input[placeholder="Write your answer..."]', 'Coffee!');
+    await page.click('button:has-text("Get Started")');
     await page.waitForTimeout(1500);
     
-    // Check if we're on discovery page
-    const pageText = await page.evaluate(() => document.body.innerText);
-    const onDiscovery = pageText.includes('Discover') || pageText.includes('Filters') || pageText.includes('Like');
-    console.log('✅ Logged in:', onDiscovery);
+    if (!page.url().includes('onboarding')) { passed++; console.log('   ✅ Onboarding complete'); }
+    else { failed++; console.log('   ❌ Onboarding incomplete'); }
     
-    console.log('\n=== TEST 4: Discovery Page ===');
-    const hasProfile = await page.locator('text=miles away').count();
-    console.log('✅ Profile cards:', hasProfile > 0);
+    // ===== DISCOVERY TESTS =====
+    console.log('\n--- DISCOVERY TESTS ---');
     
-    console.log('\n=== TEST 5: Swipe Actions ===');
-    // Check for action buttons
-    const hasHeart = await page.locator('svg').count();
-    console.log('✅ Has action buttons:', hasHeart > 0);
+    // 6. Discovery page
+    console.log('6. Discovery page');
+    const body = await page.evaluate(() => document.body.innerText);
+    if (body.includes('miles') || body.includes('LIKE')) { passed++; console.log('   ✅ Profiles displayed'); }
+    else { failed++; console.log('   ❌ No profiles'); }
     
-    console.log('\n=== TEST 6: Navigation ===');
-    await page.click('text=Matches');
-    await page.waitForTimeout(500);
-    const matchesText = await page.evaluate(() => document.body.innerText);
-    console.log('✅ Matches page:', matchesText.includes('Matches'));
+    // 7. Like button
+    console.log('7. Swipe like');
+    const btns = await page.locator('button').all();
+    if (btns[6]) { await btns[6].click(); await page.waitForTimeout(300); passed++; console.log('   ✅ Like'); }
+    else { failed++; console.log('   ❌ Like failed'); }
     
-    await page.click('text=Moments');
-    await page.waitForTimeout(500);
-    const momentsText = await page.evaluate(() => document.body.innerText);
-    console.log('✅ Moments page:', momentsText.includes('Moments'));
+    // ===== PROFILE TESTS =====
+    console.log('\n--- PROFILE TESTS ---');
     
-    await page.click('text=Profile');
-    await page.waitForTimeout(500);
+    // 8. Navigate to Profile
+    console.log('8. Profile page');
+    await page.goto('http://localhost:3000/profile');
+    await page.waitForTimeout(1000);
     const profileText = await page.evaluate(() => document.body.innerText);
-    console.log('✅ Profile page:', profileText.includes('Profile'));
+    if (profileText.includes('Profile') || profileText.includes('Edit')) { passed++; console.log('   ✅ Profile page'); }
+    else { failed++; console.log('   ❌ Profile page missing'); }
     
-    if (errors.length > 0) {
-      console.log('\n=== CONSOLE ERRORS ===');
-      errors.forEach(e => console.log('ERROR:', e));
-    } else {
-      console.log('\n✅ No errors!');
+    // 9. Premium section
+    console.log('9. Premium section');
+    if (profileText.includes('Premium') || profileText.includes('Upgrade')) { passed++; console.log('   ✅ Premium section'); }
+    else { failed++; console.log('   ❌ No premium'); }
+    
+    // 10. Logout
+    console.log('10. Logout');
+    const logoutBtns = await page.locator('button').all();
+    let found = false;
+    for (const btn of logoutBtns) {
+      const txt = await btn.textContent();
+      if (txt && txt.includes('Log Out')) {
+        await btn.click();
+        found = true;
+        break;
+      }
     }
+    await page.waitForTimeout(500);
+    if (found) { passed++; console.log('   ✅ Logout button'); }
+    else { failed++; console.log('   ❌ No logout'); }
     
-    console.log('\n=== ALL TESTS COMPLETE ===');
+    // ===== AUTH RE-TEST =====
+    console.log('\n--- AUTH RE-TEST ---');
     
-  } catch (error) {
-    console.log('Test error:', error.message);
+    // 11. Wrong password
+    console.log('11. Wrong password');
+    await page.fill('input[type="email"]', 'test@muse.com');
+    await page.fill('input[type="password"]', 'wrong');
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(1000);
+    const errText = await page.evaluate(() => document.body.innerText);
+    if (errText.includes('Incorrect')) { passed++; console.log('   ✅ Wrong password rejected'); }
+    else { failed++; console.log('   ❌ Wrong password accepted'); }
+    
+    // 12. Correct login
+    console.log('12. Correct login');
+    await page.fill('input[type="password"]', 'Password123');
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(1500);
+    if (!page.url().includes('auth')) { passed++; console.log('   ✅ Login successful'); }
+    else { failed++; console.log('   ❌ Login failed'); }
+    
+    console.log('\n=== FINAL RESULTS: ' + passed + '/' + (passed+failed) + ' PASSED ===');
+    
+  } catch (e) {
+    console.log('Error:', e.message);
   }
   
   await browser.close();

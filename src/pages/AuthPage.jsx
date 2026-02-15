@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaHeart, FaGoogle, FaFacebookF, FaStar, FaEye, FaEyeSlash } from 'react-icons/fa';
-import useStore from '../store/useStore';
+import useStore, { findUserByEmail } from '../store/useStore';
 import '../styles/globals.css';
 
 export default function AuthPage() {
@@ -38,6 +38,18 @@ export default function AuthPage() {
     return re.test(email);
   };
 
+  const getPasswordStrength = (pwd) => {
+    if (!pwd) return { strength: 0, label: '', color: '#555' };
+    let strength = 0;
+    if (pwd.length >= 8) strength += 25;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength += 25;
+    if (/\d/.test(pwd)) strength += 25;
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength += 25;
+    const labels = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = ['#F44336', '#FF9800', '#FFC107', '#8BC34A', '#4CAF50'];
+    return { strength, label: labels[Math.floor(strength / 25)], color: colors[Math.floor(strength / 25)] };
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -49,8 +61,12 @@ export default function AuthPage() {
     
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      newErrors.password = 'Password must have uppercase and lowercase';
+    } else if (!/\d/.test(password)) {
+      newErrors.password = 'Password must contain a number';
     }
     
     if (!isLogin) {
@@ -83,12 +99,26 @@ export default function AuthPage() {
     // Simulate network delay
     setTimeout(() => {
       if (isLogin) {
-        // For login - user already exists, go to home
-        login(email, password);
-        navigate('/');
+        const success = login(email, password);
+        if (success) {
+          navigate('/');
+        } else {
+          const user = findUserByEmail(email.trim().toLowerCase());
+          if (!user) {
+            setErrors({ email: 'No account found. Please sign up first.' });
+          } else {
+            setErrors({ password: 'Incorrect password. Please try again.' });
+          }
+        }
       } else {
-        // For signup - new user needs onboarding
-        signup({
+        const existingUser = findUserByEmail(email.trim().toLowerCase());
+        if (existingUser) {
+          setErrors({ email: 'An account with this email already exists. Please sign in.' });
+          setIsLoading(false);
+          return;
+        }
+        
+        const success = signup({
           name: name.trim(),
           email: email.trim().toLowerCase(),
           age: 25,
@@ -99,8 +129,12 @@ export default function AuthPage() {
           location: 'Your Location',
           distance: 0,
           onboardingCompleted: false
-        });
-        navigate('/onboarding');
+        }, password);
+        if (success) {
+          navigate('/onboarding');
+        } else {
+          setErrors({ email: 'An error occurred. Please try again.' });
+        }
       }
       setIsLoading(false);
     }, 500);
@@ -145,15 +179,15 @@ export default function AuthPage() {
       </motion.div>
 
       <motion.div style={styles.card} initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <div style={styles.tabs}>
-          <button style={{...styles.tab, ...(isLogin ? styles.tabActive : {})}} onClick={() => setIsLogin(true)}>Sign In</button>
-          <button style={{...styles.tab, ...(!isLogin ? styles.tabActive : {})}} onClick={() => setIsLogin(false)}>Sign Up</button>
+        <div style={styles.tabs} role="tablist" aria-label="Authentication form">
+          <button style={{...styles.tab, ...(isLogin ? styles.tabActive : {})}} onClick={() => setIsLogin(true)} role="tab" aria-selected={isLogin} aria-controls="login-form">Sign In</button>
+          <button style={{...styles.tab, ...(!isLogin ? styles.tabActive : {})}} onClick={() => setIsLogin(false)} role="tab" aria-selected={!isLogin} aria-controls="signup-form">Sign Up</button>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div key={isLogin ? 'login' : 'signup'} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
             <p style={styles.subtitle}>{isLogin ? 'Welcome back! Sign in to continue' : 'Create your profile and start connecting'}</p>
-            <form onSubmit={handleSubmit} style={styles.form}>
+              <form onSubmit={handleSubmit} style={styles.form} aria-label={isLogin ? "Login form" : "Signup form"}>
               {!isLogin && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                   <div style={styles.inputGroup}>
@@ -162,9 +196,12 @@ export default function AuthPage() {
                       placeholder="Your name" 
                       value={name} 
                       onChange={(e) => setName(e.target.value)} 
-                      style={errors.name ? {...styles.input, ...styles.inputError} : styles.input} 
+                      style={errors.name ? {...styles.input, ...styles.inputError} : styles.input}
+                      aria-label="Your name"
+                      aria-invalid={!!errors.name}
+                      aria-describedby={errors.name ? "name-error" : undefined}
                     />
-                    {errors.name && <p style={styles.errorText}>{errors.name}</p>}
+                    {errors.name && <p style={styles.errorText} id="name-error" role="alert">{errors.name}</p>}
                   </div>
                 </motion.div>
               )}
@@ -174,9 +211,12 @@ export default function AuthPage() {
                   placeholder="Email address" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
-                  style={errors.email ? {...styles.input, ...styles.inputError} : styles.input} 
+                  style={errors.email ? {...styles.input, ...styles.inputError} : styles.input}
+                  aria-label="Email address"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
-                {errors.email && <p style={styles.errorText}>{errors.email}</p>}
+                {errors.email && <p style={styles.errorText} id="email-error" role="alert">{errors.email}</p>}
               </div>
               <div style={styles.inputGroup}>
                 <div style={styles.passwordWrapper}>
@@ -185,7 +225,10 @@ export default function AuthPage() {
                     placeholder="Password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    style={errors.password ? {...styles.input, ...styles.inputError, ...styles.passwordInput} : {...styles.input, ...styles.passwordInput}} 
+                    style={errors.password ? {...styles.input, ...styles.inputError, ...styles.passwordInput} : {...styles.input, ...styles.passwordInput}}
+                    aria-label="Password"
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? "password-error" : undefined}
                   />
                   <button 
                     type="button" 
@@ -196,6 +239,14 @@ export default function AuthPage() {
                   </button>
                 </div>
                 {errors.password && <p style={styles.errorText}>{errors.password}</p>}
+                {!isLogin && password && (
+                  <div style={styles.passwordStrength}>
+                    <div style={styles.strengthBar}>
+                      <div style={{...styles.strengthFill, width: getPasswordStrength(password).strength + '%', background: getPasswordStrength(password).color}} />
+                    </div>
+                    <span style={{color: getPasswordStrength(password).color, fontSize: '12px'}}>{getPasswordStrength(password).label}</span>
+                  </div>
+                )}
               </div>
               {!isLogin && <p style={styles.terms}>By signing up, you agree to our Terms of Service and Privacy Policy</p>}
               <motion.button 
@@ -204,6 +255,7 @@ export default function AuthPage() {
                 whileHover={!isLoading ? { scale: 1.02 } : {}} 
                 whileTap={!isLoading ? { scale: 0.98 } : {}}
                 disabled={isLoading}
+                aria-label={isLogin ? "Sign in" : "Create account"}
               >
                 {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
                 {!isLoading && <FaHeart style={styles.btnIcon} />}
@@ -322,5 +374,23 @@ const styles = {
   submitBtnDisabled: {
     opacity: 0.6,
     cursor: 'not-allowed',
+  },
+  passwordStrength: {
+    marginTop: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  strengthBar: {
+    flex: 1,
+    height: '4px',
+    background: 'rgba(255,255,255,0.1)',
+    borderRadius: '2px',
+    overflow: 'hidden',
+  },
+  strengthFill: {
+    height: '100%',
+    transition: 'all 0.3s ease',
+    borderRadius: '2px',
   },
 };
