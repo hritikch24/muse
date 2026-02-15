@@ -585,10 +585,10 @@ const styles = {
   },
   card: {
     position: 'absolute',
-    width: '100%',
+    width: '90%',
     maxWidth: '340px',
-    height: '100%',
-    maxHeight: '480px',
+    height: '75%',
+    maxHeight: '520px',
     borderRadius: '24px',
     overflow: 'hidden',
     background: '#2A2A4A',

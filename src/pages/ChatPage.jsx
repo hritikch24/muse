@@ -513,9 +513,10 @@ const styles = {
     background: 'rgba(255,255,255,0.08)',
     border: '1px solid rgba(255,255,255,0.15)',
     borderRadius: '24px',
-    fontSize: '15px',
+    fontSize: '16px',
     color: '#fff',
     outline: 'none',
+    minHeight: '48px',
   },
   sendBtn: {
     width: '44px',
