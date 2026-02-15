@@ -185,6 +185,18 @@ const useStore = create(
       showOnline: true,
       showProfile: true,
 
+      // Calls
+      callState: {
+        isCallActive: false,
+        isIncomingCall: false,
+        callType: null,
+        caller: null,
+        roomUrl: null,
+        callStartTime: null,
+        isVideoEnabled: true,
+        isAudioEnabled: true,
+      },
+
       // Profile Stats
       profileStats: {
         likes: 0,
@@ -192,6 +204,9 @@ const useStore = create(
         messages: 0,
         profileViews: 0
       },
+
+      // Call History
+      callHistory: [],
 
       // Actions
       fetchLocation: () => {
@@ -241,9 +256,114 @@ const useStore = create(
         const { premiumPlan } = get();
         if (premiumPlan) {
           set({ lastBoost: new Date().toISOString() });
-          // Boost puts your profile at top of others' feeds
-          // In real app, this would notify other users
         }
+      },
+
+      // Call actions
+      initiateCall: (matchId, callType) => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isCallActive: true,
+            callType,
+            caller: matchId,
+            callStartTime: Date.now()
+          }
+        }));
+      },
+
+      receiveCall: (caller, callType, roomUrl) => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isIncomingCall: true,
+            callType,
+            caller,
+            roomUrl
+          }
+        }));
+      },
+
+      acceptCall: () => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isIncomingCall: false,
+            isCallActive: true,
+            callStartTime: Date.now()
+          }
+        }));
+      },
+
+      rejectCall: () => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isIncomingCall: false,
+            caller: null,
+            roomUrl: null
+          }
+        }));
+      },
+
+      endCall: (duration = 0) => {
+        const { callState, callHistory } = get();
+        
+        if (callState.caller) {
+          const newHistory = {
+            id: Date.now(),
+            matchId: callState.caller,
+            type: callState.callType,
+            duration,
+            timestamp: Date.now(),
+            status: 'completed'
+          };
+          
+          set(state => ({
+            callState: {
+              isCallActive: false,
+              isIncomingCall: false,
+              callType: null,
+              caller: null,
+              roomUrl: null,
+              callStartTime: null,
+              isVideoEnabled: true,
+              isAudioEnabled: true,
+            },
+            callHistory: [newHistory, ...(state.callHistory || [])].slice(0, 50)
+          }));
+        } else {
+          set(state => ({
+            callState: {
+              isCallActive: false,
+              isIncomingCall: false,
+              callType: null,
+              caller: null,
+              roomUrl: null,
+              callStartTime: null,
+              isVideoEnabled: true,
+              isAudioEnabled: true,
+            }
+          }));
+        }
+      },
+
+      toggleCallVideo: () => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isVideoEnabled: !state.callState.isVideoEnabled
+          }
+        }));
+      },
+
+      toggleCallAudio: () => {
+        set(state => ({
+          callState: {
+            ...state.callState,
+            isAudioEnabled: !state.callState.isAudioEnabled
+          }
+        }));
       },
 
       addProfileView: () => {

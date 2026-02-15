@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaPaperPlane, FaMicrophone, FaVideo, FaEllipsisH, FaCheck, FaCheckDouble, FaBolt } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaMicrophone, FaVideo, FaPhone, FaEllipsisH, FaCheck, FaCheckDouble, FaBolt } from 'react-icons/fa';
 import useStore from '../store/useStore';
+import CallScreen from '../components/calls/CallScreen';
 import '../styles/globals.css';
 
 const ICEBREAKERS = [
-  "Hey! How's your day going? 😊",
+  "Hey! How's your day going?",
   "What's the best advice you've ever received?",
   "If you could travel anywhere right now, where would you go?",
   "What's your go-to comfort food?",
@@ -14,7 +15,7 @@ const ICEBREAKERS = [
   "What's your favorite way to spend a weekend?",
   "Tell me about your last vacation!",
   "What's your favorite movie or show currently?",
-  "Coffee or tea? ☕",
+  "Coffee or tea?",
   "What's something you're passionate about?",
 ];
 
@@ -25,14 +26,17 @@ export default function ChatPage() {
   const [message, setMessage] = useState('');
   const [showActions, setShowActions] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showAudioCall, setShowAudioCall] = useState(false);
   const [showIcebreakers, setShowIcebreakers] = useState(false);
 
   const chats = useStore(state => state.chats);
   const messages = useStore(state => state.messages);
   const sendMessage = useStore(state => state.sendMessage);
+  const initiateCall = useStore(state => state.initiateCall);
+  const endCall = useStore(state => state.endCall);
+  const callState = useStore(state => state.callState);
 
   const chat = chats.find(c => c.id === chatId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const chatMessages = messages[chatId] || [];
 
   useEffect(() => {
@@ -53,14 +57,29 @@ export default function ChatPage() {
     }
   };
 
+  const handleVideoCall = () => {
+    if (chat?.matchedProfile) {
+      initiateCall(chat.matchedProfile.id, 'video');
+      setShowVideoCall(true);
+    }
+  };
+
+  const handleAudioCall = () => {
+    if (chat?.matchedProfile) {
+      initiateCall(chat.matchedProfile.id, 'audio');
+      setShowAudioCall(true);
+    }
+  };
+
+  const handleCallEnd = () => {
+    endCall();
+    setShowVideoCall(false);
+    setShowAudioCall(false);
+  };
+
   const handleIcebreaker = (text) => {
     sendMessage(chatId, text);
     setShowIcebreakers(false);
-  };
-
-  const handleVideoCall = () => {
-    setShowVideoCall(true);
-    setTimeout(() => setShowVideoCall(false), 2000);
   };
 
   const handleViewProfile = () => {
@@ -117,7 +136,10 @@ export default function ChatPage() {
           </div>
         </div>
         <div style={styles.headerActions}>
-          <button style={styles.headerBtn} onClick={handleVideoCall}>
+          <button style={styles.headerBtn} onClick={handleAudioCall} aria-label="Audio call">
+            <FaPhone size={18} />
+          </button>
+          <button style={styles.headerBtn} onClick={handleVideoCall} aria-label="Video call">
             <FaVideo size={18} />
           </button>
           <button style={styles.headerBtn} onClick={() => setShowActions(!showActions)}>
@@ -270,18 +292,21 @@ export default function ChatPage() {
         )}
       </AnimatePresence>
 
-      {/* Video Call Toast */}
+      {/* Video/Audio Call Screen */}
       <AnimatePresence>
         {showVideoCall && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={styles.videoCallToast}
-          >
-            <FaVideo size={20} />
-            Starting video call...
-          </motion.div>
+          <CallScreen
+            match={chat.matchedProfile}
+            callType="video"
+            onEnd={handleCallEnd}
+          />
+        )}
+        {showAudioCall && (
+          <CallScreen
+            match={chat.matchedProfile}
+            callType="audio"
+            onEnd={handleCallEnd}
+          />
         )}
       </AnimatePresence>
     </div>
