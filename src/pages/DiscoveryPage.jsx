@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaHeart, FaStar, FaComment, FaUndo, FaTrophy, FaSlidersH, FaCheck, FaBolt } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaTimes, FaHeart, FaStar, FaComment, FaUndo, FaSlidersH, FaBolt } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
 
@@ -11,7 +11,6 @@ export default function DiscoveryPage() {
   const swipeLeft = useStore(state => state.swipeLeft);
   const undoSwipe = useStore(state => state.undoSwipe);
   const passedProfiles = useStore(state => state.passedProfiles);
-  const currentUser = useStore(state => state.currentUser);
   const premiumPlan = useStore(state => state.premiumPlan);
   const preferences = useStore(state => state.preferences);
   const updatePreferences = useStore(state => state.updatePreferences);
@@ -21,7 +20,6 @@ export default function DiscoveryPage() {
   const [showMatch, setShowMatch] = useState(false);
   const [matchProfile, setMatchProfile] = useState(null);
   const [showProfileDetail, setShowProfileDetail] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showBoostAnimation, setShowBoostAnimation] = useState(false);
   const [filterAgeMin, setFilterAgeMin] = useState(preferences.ageRange[0]);
@@ -138,7 +136,7 @@ export default function DiscoveryPage() {
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.7}
-            onDragEnd={(e, { offset, velocity }) => {
+            onDragEnd={(e, { offset }) => {
               const swipeThreshold = 100;
               if (offset.x > swipeThreshold) {
                 handleSwipe('right');

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaPaperPlane, FaMicrophone, FaVideo, FaEllipsisH, FaCheck, FaCheckDouble, FaBolt } from 'react-icons/fa';
@@ -32,6 +32,7 @@ export default function ChatPage() {
   const sendMessage = useStore(state => state.sendMessage);
 
   const chat = chats.find(c => c.id === chatId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const chatMessages = messages[chatId] || [];
 
   useEffect(() => {

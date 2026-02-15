@@ -16,15 +16,12 @@ export default function MomentsPage() {
   const [selectedMoment, setSelectedMoment] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [showAddMoment, setShowAddMoment] = useState(false);
   const [newCaption, setNewCaption] = useState('');
-  const [momentLiked, setMomentLiked] = useState({});
-  const [showShareModal, setShowShareModal] = useState(false);
-  const progressRef = useRef(null);
   const currentUser = useStore(state => state.currentUser);
   const addMoment = useStore(state => state.addMoment);
   const moments = useStore(state => state.moments);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const allMoments = Array.isArray(moments) ? [...moments, ...sampleMoments] : sampleMoments;
 
   useEffect(() => {
