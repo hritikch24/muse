@@ -1,6 +1,6 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaCompass, FaHeart, FaPlayCircle, FaUser, FaHome } from 'react-icons/fa';
+import { AnimatePresence } from 'framer-motion';
+import { FaCompass, FaHeart, FaPlayCircle, FaUser } from 'react-icons/fa';
 import useStore from '../../store/useStore';
 import '../../styles/globals.css';
 
@@ -13,7 +13,6 @@ const navItems = [
 
 export default function MainLayout() {
   const location = useLocation();
-  const matchedProfiles = useStore(state => state.matchedProfiles);
   const notifications = useStore(state => state.notifications);
 
   const unreadCount = notifications.filter(n => !n.read).length;

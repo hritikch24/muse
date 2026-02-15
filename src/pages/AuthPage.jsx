@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { FaHeart, FaGoogle, FaFacebookF, FaStar } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
@@ -26,6 +26,7 @@ export default function AuthPage() {
       duration: Math.random() * 10 + 10,
       delay: Math.random() * 5
     }));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setParticles(newParticles);
   }, []);
 
