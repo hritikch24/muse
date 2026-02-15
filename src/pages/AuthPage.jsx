@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import { FaHeart, FaGoogle, FaFacebookF, FaStar } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaHeart, FaGoogle, FaFacebookF, FaStar, FaEye, FaEyeSlash } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
 
@@ -10,9 +10,12 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const [particles, setParticles] = useState([]);
   const [showSocialToast, setShowSocialToast] = useState(false);
   const [socialToastMessage, setSocialToastMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const login = useStore(state => state.login);
   const signup = useStore(state => state.signup);
@@ -30,6 +33,38 @@ export default function AuthPage() {
     setParticles(newParticles);
   }, []);
 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (!isLogin) {
+      if (!name.trim()) {
+        newErrors.name = 'Name is required';
+      } else if (name.trim().length < 2) {
+        newErrors.name = 'Name must be at least 2 characters';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSocialLogin = (provider) => {
     setSocialToastMessage(`${provider} login coming soon!`);
     setShowSocialToast(true);
@@ -38,24 +73,36 @@ export default function AuthPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isLogin) {
-      login(email, password);
-      navigate('/');
-    } else {
-      signup({
-        name,
-        email,
-        age: 25,
-        bio: 'Looking for something real',
-        photos: ['https://picsum.photos/seed/user1/400/600'],
-        interests: ['Music', 'Travel', 'Food'],
-        prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
-        location: 'Your Location',
-        distance: 0,
-        onboardingCompleted: false
-      });
-      navigate('/onboarding');
+    
+    if (!validateForm()) {
+      return;
     }
+    
+    setIsLoading(true);
+    
+    // Simulate network delay
+    setTimeout(() => {
+      if (isLogin) {
+        // For login, check if user exists in localStorage or create demo user
+        login(email, password);
+        navigate('/');
+      } else {
+        signup({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          age: 25,
+          bio: 'Looking for something real',
+          photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
+          interests: ['Music', 'Travel', 'Food'],
+          prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
+          location: 'Your Location',
+          distance: 0,
+          onboardingCompleted: false
+        });
+        navigate('/onboarding');
+      }
+      setIsLoading(false);
+    }, 500);
   };
 
   return (
@@ -109,20 +156,56 @@ export default function AuthPage() {
               {!isLogin && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                   <div style={styles.inputGroup}>
-                    <input type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} style={styles.input} required />
+                    <input 
+                      type="text" 
+                      placeholder="Your name" 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)} 
+                      style={errors.name ? {...styles.input, ...styles.inputError} : styles.input} 
+                    />
+                    {errors.name && <p style={styles.errorText}>{errors.name}</p>}
                   </div>
                 </motion.div>
               )}
               <div style={styles.inputGroup}>
-                <input type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.input} required />
+                <input 
+                  type="email" 
+                  placeholder="Email address" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  style={errors.email ? {...styles.input, ...styles.inputError} : styles.input} 
+                />
+                {errors.email && <p style={styles.errorText}>{errors.email}</p>}
               </div>
               <div style={styles.inputGroup}>
-                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} required minLength={6} />
+                <div style={styles.passwordWrapper}>
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    style={errors.password ? {...styles.input, ...styles.inputError, ...styles.passwordInput} : {...styles.input, ...styles.passwordInput}} 
+                  />
+                  <button 
+                    type="button" 
+                    style={styles.eyeBtn}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <p style={styles.errorText}>{errors.password}</p>}
               </div>
               {!isLogin && <p style={styles.terms}>By signing up, you agree to our Terms of Service and Privacy Policy</p>}
-              <motion.button type="submit" style={styles.submitBtn} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                {isLogin ? 'Sign In' : 'Create Account'}
-                <FaHeart style={styles.btnIcon} />
+              <motion.button 
+                type="submit" 
+                style={isLoading ? {...styles.submitBtn, ...styles.submitBtnDisabled} : styles.submitBtn} 
+                whileHover={!isLoading ? { scale: 1.02 } : {}} 
+                whileTap={!isLoading ? { scale: 0.98 } : {}}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {!isLoading && <FaHeart style={styles.btnIcon} />}
               </motion.button>
             </form>
           </motion.div>
@@ -206,5 +289,37 @@ const styles = {
     color: '#fff',
     fontSize: '14px',
     border: '1px solid rgba(255,255,255,0.2)',
+  },
+  inputError: {
+    border: '1px solid #F44336 !important',
+    background: 'rgba(244,67,54,0.1) !important',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: '12px',
+    marginTop: '4px',
+    textAlign: 'left',
+  },
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
+  passwordInput: {
+    paddingRight: '50px',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '14px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    color: 'rgba(255,255,255,0.6)',
+    cursor: 'pointer',
+    padding: '4px',
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
   },
 };

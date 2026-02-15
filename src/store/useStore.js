@@ -227,13 +227,19 @@ const useStore = create(
       },
 
       login: (email, password) => {
+        // For demo purposes, accept any valid email/password
+        // In production, this would validate against a backend
+        if (!email || !password || password.length < 6) {
+          return false;
+        }
+        
         const user = {
           id: uuidv4(),
           email,
           name: 'You',
           age: 25,
           bio: 'Looking for something real',
-          photos: ['https://picsum.photos/seed/user1/400/600'],
+          photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
           interests: ['Music', 'Travel', 'Food'],
           prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
           location: 'Your Location',
