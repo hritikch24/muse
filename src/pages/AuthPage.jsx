@@ -211,6 +211,8 @@ export default function AuthPage() {
                   placeholder="Email address" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
+                  inputMode="email"
+                  autoComplete="email"
                   style={errors.email ? {...styles.input, ...styles.inputError} : styles.input}
                   aria-label="Email address"
                   aria-invalid={!!errors.email}
@@ -225,6 +227,8 @@ export default function AuthPage() {
                     placeholder="Password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
+                    inputMode="text"
+                    autoComplete="current-password"
                     style={errors.password ? {...styles.input, ...styles.inputError, ...styles.passwordInput} : {...styles.input, ...styles.passwordInput}}
                     aria-label="Password"
                     aria-invalid={!!errors.password}
@@ -321,9 +325,9 @@ const styles = {
   subtitle: { textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '15px', marginBottom: '28px' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px' },
   inputGroup: { width: '100%' },
-  input: { width: '100%', padding: '16px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', fontSize: '16px', color: '#fff', outline: 'none', transition: 'all 0.3s ease', boxSizing: 'border-box' },
+  input: { width: '100%', padding: '16px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', fontSize: '16px', color: '#fff', outline: 'none', transition: 'all 0.3s ease', boxSizing: 'border-box', minHeight: '48px' },
   terms: { fontSize: '12px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 1.5 },
-  submitBtn: { width: '100%', padding: '18px', background: 'linear-gradient(135deg, #E91E63, #FF6B9D)', border: 'none', borderRadius: '14px', fontSize: '17px', fontWeight: 600, color: '#fff', cursor: 'pointer', marginTop: '14px', boxShadow: '0 8px 25px rgba(233,30,99,0.4)', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
+  submitBtn: { width: '100%', padding: '18px', background: 'linear-gradient(135deg, #E91E63, #FF6B9D)', border: 'none', borderRadius: '14px', fontSize: '17px', fontWeight: 600, color: '#fff', cursor: 'pointer', marginTop: '14px', boxShadow: '0 8px 25px rgba(233,30,99,0.4)', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '52px' },
   btnIcon: { fontSize: '14px' },
   divider: { display: 'flex', alignItems: 'center', margin: '26px 0', color: 'rgba(255,255,255,0.4)', fontSize: '14px' },
   socialBtns: { display: 'flex', gap: '12px' },

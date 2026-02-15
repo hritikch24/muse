@@ -128,9 +128,12 @@ const styles = {
     position: 'relative',
     color: 'rgba(255,255,255,0.6)',
     textDecoration: 'none',
+    minHeight: '48px',
   },
   iconWrapper: {
     position: 'relative',
+    width: '28px',
+    height: '28px',
   },
   badge: {
     position: 'absolute',
