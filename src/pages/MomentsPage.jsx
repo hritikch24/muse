@@ -17,6 +17,8 @@ export default function MomentsPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [newCaption, setNewCaption] = useState('');
+  const [momentLiked, setMomentLiked] = useState({});
+  const [showShareModal, setShowShareModal] = useState(false);
   const currentUser = useStore(state => state.currentUser);
   const addMoment = useStore(state => state.addMoment);
   const moments = useStore(state => state.moments);
@@ -53,7 +55,6 @@ export default function MomentsPage() {
         caption: newCaption || 'My moment!'
       });
       setNewCaption('');
-      setShowAddMoment(false);
     }
   };
 
@@ -67,7 +68,6 @@ export default function MomentsPage() {
           caption: newCaption || 'My moment!'
         });
         setNewCaption('');
-        setShowAddMoment(false);
       };
       reader.readAsDataURL(file);
     }
@@ -80,6 +80,7 @@ export default function MomentsPage() {
     }));
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleShareMoment = (moment) => {
     setShowShareModal(true);
     setTimeout(() => setShowShareModal(false), 2000);

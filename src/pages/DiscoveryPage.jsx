@@ -95,10 +95,6 @@ export default function DiscoveryPage() {
     }
   };
 
-  const handlePremiumClick = () => {
-    navigate('/profile');
-  };
-
   if (!currentProfile || profiles.length === 0) {
     return (
       <div style={styles.emptyState}>
