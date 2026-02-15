@@ -228,7 +228,6 @@ const useStore = create(
 
       login: (email, password) => {
         // For demo purposes, accept any valid email/password
-        // In production, this would validate against a backend
         if (!email || !password || password.length < 6) {
           return false;
         }
@@ -244,6 +243,7 @@ const useStore = create(
           prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
           location: 'Your Location',
           distance: 0,
+          // For existing users, onboarding is completed
           onboardingCompleted: true
         };
         set({ currentUser: user, isAuthenticated: true });
@@ -257,7 +257,8 @@ const useStore = create(
           ...userData,
           matches: [],
           likes: [],
-          onboardingCompleted: true
+          // Don't override onboardingCompleted if explicitly set
+          onboardingCompleted: userData.onboardingCompleted !== undefined ? userData.onboardingCompleted : false
         };
         set({ currentUser: user, isAuthenticated: true });
         get().fetchLocation();
@@ -431,6 +432,7 @@ const useStore = create(
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
         matchedProfiles: state.matchedProfiles,
+        passedProfiles: state.passedProfiles,
         chats: state.chats,
         messages: state.messages,
         moments: state.moments,

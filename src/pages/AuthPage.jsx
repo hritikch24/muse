@@ -83,10 +83,11 @@ export default function AuthPage() {
     // Simulate network delay
     setTimeout(() => {
       if (isLogin) {
-        // For login, check if user exists in localStorage or create demo user
+        // For login - user already exists, go to home
         login(email, password);
         navigate('/');
       } else {
+        // For signup - new user needs onboarding
         signup({
           name: name.trim(),
           email: email.trim().toLowerCase(),
