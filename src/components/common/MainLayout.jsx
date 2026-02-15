@@ -1,5 +1,5 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { FaCompass, FaHeart, FaPlayCircle, FaUser } from 'react-icons/fa';
 import useStore from '../../store/useStore';
 import '../../styles/globals.css';

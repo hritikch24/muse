@@ -13,37 +13,29 @@ import MainLayout from './components/common/MainLayout';
 function App() {
   const { isAuthenticated, currentUser } = useStore();
 
-  if (!isAuthenticated) {
+  const getPage = () => {
+    if (!isAuthenticated) {
+      return <AuthPage />;
+    }
+    if (currentUser && !currentUser.onboardingCompleted) {
+      return <OnboardingPage />;
+    }
     return (
-      <BrowserRouter>
+      <MainLayout>
         <Routes>
-          <Route path="/*" element={<AuthPage />} />
-        </Routes>
-      </BrowserRouter>
-    );
-  }
-
-  if (currentUser && !currentUser.onboardingCompleted) {
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/*" element={<OnboardingPage />} />
-        </Routes>
-      </BrowserRouter>
-    );
-  }
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
           <Route index element={<DiscoveryPage />} />
           <Route path="matches" element={<MatchesPage />} />
           <Route path="chat/:chatId" element={<ChatPage />} />
           <Route path="moments" element={<MomentsPage />} />
           <Route path="profile" element={<ProfilePage />} />
-        </Route>
-      </Routes>
+        </Routes>
+      </MainLayout>
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      {getPage()}
     </BrowserRouter>
   );
 }
