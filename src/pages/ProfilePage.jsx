@@ -319,7 +319,7 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
-      {/* Settings */}
+      {/* Settings - Converted to Bottom Sheet */}
       <motion.div 
         style={styles.section}
         initial={{ opacity: 0, y: 20 }}
@@ -355,30 +355,32 @@ export default function ProfilePage() {
         </button>
       </motion.div>
 
-      {/* Settings Modal */}
+      {/* Settings Modal - Bottom Sheet */}
       <AnimatePresence>
         {showSettingsModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={styles.modalOverlay}
+            style={styles.bottomSheetOverlay}
             onClick={() => setShowSettingsModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              style={styles.settingsModal}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              style={styles.bottomSheet}
               onClick={e => e.stopPropagation()}
             >
-              <div style={styles.settingsModalHeader}>
-                <h2 style={styles.settingsModalTitle}>{settingsModalContent?.title}</h2>
+              <div style={styles.bottomSheetHandle}></div>
+              <div style={styles.bottomSheetHeader}>
+                <h2 style={styles.bottomSheetTitle}>{settingsModalContent?.title}</h2>
                 <button style={styles.modalClose} onClick={() => setShowSettingsModal(false)}>
                   <FaTimes size={20} />
                 </button>
               </div>
-              <div style={styles.settingsModalContent}>
+              <div style={styles.bottomSheetContent}>
                 <p style={styles.settingsModalText}>{settingsModalContent?.content}</p>
               </div>
             </motion.div>
@@ -1124,6 +1126,48 @@ const styles = {
     padding: '24px',
     position: 'relative',
     border: '1px solid rgba(255,255,255,0.1)',
+  },
+  bottomSheetOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.6)',
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    zIndex: 200,
+  },
+  bottomSheet: {
+    width: '100%',
+    maxWidth: '500px',
+    background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
+    borderTopLeftRadius: '24px',
+    borderTopRightRadius: '24px',
+    padding: '20px',
+    paddingBottom: '40px',
+    maxHeight: '80vh',
+    overflow: 'auto',
+  },
+  bottomSheetHandle: {
+    width: '40px',
+    height: '4px',
+    background: 'rgba(255,255,255,0.3)',
+    borderRadius: '2px',
+    margin: '0 auto 16px',
+  },
+  bottomSheetHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+  bottomSheetTitle: {
+    fontSize: '22px',
+    fontWeight: 600,
+    color: '#fff',
+    margin: 0,
+  },
+  bottomSheetContent: {
+    paddingBottom: '20px',
   },
   settingsModalHeader: {
     display: 'flex',

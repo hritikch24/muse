@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaHeart, FaStar, FaComment, FaUndo, FaSlidersH, FaBolt } from 'react-icons/fa';
+import { FaTimes, FaHeart, FaStar, FaComment, FaUndo, FaSlidersH, FaBolt, FaCheck } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
 
@@ -28,8 +28,37 @@ export default function DiscoveryPage() {
   const [filterGender, setFilterGender] = useState(preferences.gender);
   const [superLikedProfile, setSuperLikedProfile] = useState(null);
   const [showSuperLikeAnimation, setShowSuperLikeAnimation] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const containerRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), 1500);
+  };
+
+  const handleDrag = (event, info) => {
+    if (info.offset.x > 50) {
+      setSwipeDirection('right');
+    } else if (info.offset.x < -50) {
+      setSwipeDirection('left');
+    } else {
+      setSwipeDirection(null);
+    }
+  };
+
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 100;
+    if (info.offset.x > swipeThreshold) {
+      console.log('Swipe RIGHT - LIKE');
+      handleSwipe('right');
+    } else if (info.offset.x < -swipeThreshold) {
+      console.log('Swipe LEFT - NOPE');
+      handleSwipe('left');
+    }
+    setSwipeDirection(null);
+  };
 
   const canBoost = () => {
     if (!lastBoost) return true;
@@ -127,19 +156,13 @@ export default function DiscoveryPage() {
       {/* Card Stack */}
       <div style={styles.cardContainer}>
         <AnimatePresence>
-          <motion.div
-            key={currentProfile.id}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.7}
-            onDragEnd={(e, { offset }) => {
-              const swipeThreshold = 100;
-              if (offset.x > swipeThreshold) {
-                handleSwipe('right');
-              } else if (offset.x < -swipeThreshold) {
-                handleSwipe('left');
-              }
-            }}
+            <motion.div
+              key={currentProfile.id}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.7}
+              onDrag={handleDrag}
+              onDragEnd={handleDragEnd}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -196,12 +219,27 @@ export default function DiscoveryPage() {
               </button>
             </div>
 
-            {/* Like/Nope Overlay */}
+            {/* Like/Nope Overlays */}
             <motion.div
-              style={styles.likeOverlay}
-              animate={{ opacity: 0 }}
+              style={{
+                ...styles.likeOverlay,
+                opacity: swipeDirection === 'right' ? 0.9 : 0,
+                borderColor: '#4CAF50',
+                transform: 'rotate(-15deg)',
+              }}
             >
-              <span style={styles.likeText}>LIKE</span>
+              <span style={{...styles.likeText, color: '#4CAF50'}}>LIKE</span>
+            </motion.div>
+            
+            <motion.div
+              style={{
+                ...styles.nopeOverlay,
+                opacity: swipeDirection === 'left' ? 0.9 : 0,
+                borderColor: '#F44336',
+                transform: 'rotate(15deg)',
+              }}
+            >
+              <span style={{...styles.nopeText, color: '#F44336'}}>NOPE</span>
             </motion.div>
           </motion.div>
         </AnimatePresence>
@@ -705,10 +743,23 @@ const styles = {
     borderRadius: '8px',
     transform: 'rotate(-15deg)',
   },
+  nopeOverlay: {
+    position: 'absolute',
+    top: '40px',
+    right: '20px',
+    padding: '10px 20px',
+    border: '3px solid #F44336',
+    borderRadius: '8px',
+  },
   likeText: {
     fontSize: '32px',
     fontWeight: 700,
     color: '#4CAF50',
+  },
+  nopeText: {
+    fontSize: '32px',
+    fontWeight: 700,
+    color: '#F44336',
   },
   actions: {
     display: 'flex',

@@ -99,6 +99,7 @@ const styles = {
     flexDirection: 'column',
     background: '#1A1A2E',
     overflow: 'hidden',
+    paddingTop: 'var(--safe-area-top)',
   },
   content: {
     flex: 1,
@@ -113,7 +114,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: '12px 8px 24px',
+    padding: '12px 8px calc(24px + var(--safe-area-bottom))',
     background: 'rgba(26, 26, 46, 0.95)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',

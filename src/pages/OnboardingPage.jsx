@@ -124,6 +124,10 @@ export default function OnboardingPage() {
     setErrors({});
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else {
+      if (window.confirm('Are you sure you want to go back? Your progress will be lost.')) {
+        navigate('/auth');
+      }
     }
   };
 
