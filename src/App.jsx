@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import useStore from './store/useStore';
 import MainLayout from './components/common/MainLayout';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -25,6 +25,25 @@ function ProtectedRoute({ children }) {
   const isAuthenticated = useStore(state => state.isAuthenticated);
   const currentUser = useStore(state => state.currentUser);
   const checkSession = useStore(state => state.checkSession);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    const handleBackButton = (e) => {
+      if (window.location.pathname === '/') {
+        e.preventDefault();
+        navigate(-1);
+      }
+    };
+    
+    window.history.pushState(null, '', window.location.pathname);
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [navigate]);
   
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;

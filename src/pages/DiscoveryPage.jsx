@@ -545,13 +545,17 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     padding: '16px',
+    paddingBottom: '100px',
     background: 'linear-gradient(180deg, #1A1A2E 0%, #16213E 100%)',
+    overflowY: 'auto',
+    overflowX: 'hidden',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingBottom: '16px',
+    paddingTop: '8px',
   },
   logo: {
     fontFamily: "'Playfair Display', serif",
