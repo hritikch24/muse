@@ -277,11 +277,12 @@ const styles = {
     background: 'rgba(255,255,255,0.06)',
     borderRadius: '20px',
     border: '1px solid rgba(255,255,255,0.1)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
   },
   matchImageWrapper: {
     position: 'relative',
-    width: '100px',
-    height: '100px',
+    width: '110px',
+    height: '110px',
     flexShrink: 0,
   },
   matchImage: {
@@ -289,6 +290,7 @@ const styles = {
     height: '100%',
     borderRadius: '16px',
     objectFit: 'cover',
+    border: '2px solid rgba(255,255,255,0.1)',
   },
   matchTime: {
     position: 'absolute',
