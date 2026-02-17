@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaHeart, FaStar, FaComment, FaUndo, FaSlidersH, FaBolt, FaCheck } from 'react-icons/fa';
+import { FaTimes, FaHeart, FaStar, FaUndo, FaSlidersH, FaBolt, FaCheck } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
 
@@ -16,6 +16,7 @@ export default function DiscoveryPage() {
   const updatePreferences = useStore(state => state.updatePreferences);
   const boostProfile = useStore(state => state.boostProfile);
   const lastBoost = useStore(state => state.lastBoost);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showMatch, setShowMatch] = useState(false);
   const [matchProfile, setMatchProfile] = useState(null);
@@ -29,36 +30,9 @@ export default function DiscoveryPage() {
   const [superLikedProfile, setSuperLikedProfile] = useState(null);
   const [showSuperLikeAnimation, setShowSuperLikeAnimation] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   const containerRef = useRef(null);
   const navigate = useNavigate();
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1500);
-  };
-
-  const handleDrag = (event, info) => {
-    if (info.offset.x > 50) {
-      setSwipeDirection('right');
-    } else if (info.offset.x < -50) {
-      setSwipeDirection('left');
-    } else {
-      setSwipeDirection(null);
-    }
-  };
-
-  const handleDragEnd = (event, info) => {
-    const swipeThreshold = 100;
-    if (info.offset.x > swipeThreshold) {
-      console.log('Swipe RIGHT - LIKE');
-      handleSwipe('right');
-    } else if (info.offset.x < -swipeThreshold) {
-      console.log('Swipe LEFT - NOPE');
-      handleSwipe('left');
-    }
-    setSwipeDirection(null);
-  };
 
   const canBoost = () => {
     if (!lastBoost) return true;
@@ -83,7 +57,6 @@ export default function DiscoveryPage() {
 
     if (direction === 'right') {
       swipeRight(currentProfile.id);
-      // Check if it's a match (simulated)
       if (Math.random() > 0.6) {
         setMatchProfile(currentProfile);
         setShowMatch(true);
@@ -100,7 +73,6 @@ export default function DiscoveryPage() {
 
   const handleSuperLike = () => {
     if (!currentProfile) return;
-    // Super like has higher match rate (80%)
     swipeRight(currentProfile.id);
     setSuperLikedProfile(currentProfile);
     setShowSuperLikeAnimation(true);
@@ -119,9 +91,28 @@ export default function DiscoveryPage() {
     if (passedProfiles.length > 0) {
       const profileCountBefore = profiles.length;
       undoSwipe();
-      // After undo, the restored profile is added to the end, so we set index to show it
       setCurrentIndex(profileCountBefore);
     }
+  };
+
+  const handleDrag = (event, info) => {
+    if (info.offset.x > 50) {
+      setSwipeDirection('right');
+    } else if (info.offset.x < -50) {
+      setSwipeDirection('left');
+    } else {
+      setSwipeDirection(null);
+    }
+  };
+
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 100;
+    if (info.offset.x > swipeThreshold) {
+      handleSwipe('right');
+    } else if (info.offset.x < -swipeThreshold) {
+      handleSwipe('left');
+    }
+    setSwipeDirection(null);
   };
 
   if (!currentProfile || profiles.length === 0) {
@@ -132,7 +123,7 @@ export default function DiscoveryPage() {
           animate={{ scale: 1 }}
           style={styles.emptyIcon}
         >
-          <span style={{ fontSize: '60px' }}>✨</span>
+          <span>💕</span>
         </motion.div>
         <h2 style={styles.emptyTitle}>That's everyone!</h2>
         <p style={styles.emptyText}>
@@ -144,11 +135,16 @@ export default function DiscoveryPage() {
 
   return (
     <div style={styles.container} ref={containerRef}>
-      {/* Header with Filters */}
+      {/* Header */}
       <div style={styles.header}>
-        <h1 style={styles.logo}>M<span style={styles.logoAccent}>u</span>se</h1>
-        <button style={styles.filterBtn} onClick={() => setShowFilters(true)}>
-          <FaSlidersH size={18} />
+        <h1 style={styles.logo}>
+          M<span style={styles.logoAccent}>u</span>se
+        </h1>
+        <button 
+          style={styles.filterBtn} 
+          onClick={() => setShowFilters(true)}
+        >
+          <FaSlidersH size={16} />
           <span>Filters</span>
         </button>
       </div>
@@ -156,61 +152,60 @@ export default function DiscoveryPage() {
       {/* Card Stack */}
       <div style={styles.cardContainer}>
         <AnimatePresence>
-            <motion.div
-              key={currentProfile.id}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.7}
-              onDrag={handleDrag}
-              onDragEnd={handleDragEnd}
+          <motion.div
+            key={currentProfile.id}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.7}
+            onDrag={handleDrag}
+            onDragEnd={handleDragEnd}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.3 }}
             style={styles.card}
           >
+            {/* Profile Image */}
             <img 
               src={currentProfile.photos[0]} 
               alt={currentProfile.name}
               style={styles.cardImage}
             />
             
-            {/* Card Overlay */}
-            <div style={styles.cardOverlay}>
-              <div style={styles.cardGradient}></div>
-              
-              {/* Online indicator */}
-              {currentProfile.online && (
-                <div style={styles.onlineBadge}>
-                  <span style={styles.onlineDot}></span>
-                  Active now
-                </div>
-              )}
-              
-              {/* Card Info */}
-              <div style={styles.cardInfo}>
-                <div style={styles.nameRow}>
-                  <h2 style={styles.cardName}>
-                    {currentProfile.name}, {currentProfile.age}
-                  </h2>
-                  <span style={styles.verifyBadge}>✓</span>
-                </div>
-                <p style={styles.cardLocation}>
-                  📍 {currentProfile.distance} miles away • {currentProfile.lastActive}
-                </p>
+            {/* Gradient Overlay */}
+            <div style={styles.cardGradient}></div>
+            
+            {/* Online Badge */}
+            {currentProfile.online && (
+              <div style={styles.onlineBadge}>
+                <span style={styles.onlineDot}></span>
+                Active now
               </div>
+            )}
+            
+            {/* Card Content */}
+            <div style={styles.cardContent}>
+              <div style={styles.nameRow}>
+                <h2 style={styles.cardName}>
+                  {currentProfile.name}, {currentProfile.age}
+                </h2>
+                <span style={styles.verifyBadge}>✓</span>
+              </div>
+              <p style={styles.cardLocation}>
+                📍 {currentProfile.distance} miles away • {currentProfile.lastActive}
+              </p>
 
-              {/* Quick Stats */}
-              <div style={styles.quickStats}>
+              {/* Interests */}
+              <div style={styles.interests}>
                 {currentProfile.interests.slice(0, 3).map((interest, i) => (
                   <span key={i} style={styles.interestTag}>{interest}</span>
                 ))}
               </div>
 
-              {/* Bio Preview */}
-              <p style={styles.bioPreview}>{currentProfile.bio}</p>
+              {/* Bio */}
+              <p style={styles.bio}>{currentProfile.bio}</p>
 
-              {/* View Details Button */}
+              {/* View Details */}
               <button 
                 style={styles.viewDetailsBtn}
                 onClick={() => setShowProfileDetail(true)}
@@ -219,27 +214,24 @@ export default function DiscoveryPage() {
               </button>
             </div>
 
-            {/* Like/Nope Overlays */}
+            {/* Like Overlay */}
             <motion.div
               style={{
                 ...styles.likeOverlay,
                 opacity: swipeDirection === 'right' ? 0.9 : 0,
-                borderColor: '#4CAF50',
-                transform: 'rotate(-15deg)',
               }}
             >
-              <span style={{...styles.likeText, color: '#4CAF50'}}>LIKE</span>
+              <span style={{...styles.likeText, color: 'var(--accent-success)'}}>LIKE</span>
             </motion.div>
             
+            {/* Nope Overlay */}
             <motion.div
               style={{
                 ...styles.nopeOverlay,
                 opacity: swipeDirection === 'left' ? 0.9 : 0,
-                borderColor: '#F44336',
-                transform: 'rotate(15deg)',
               }}
             >
-              <span style={{...styles.nopeText, color: '#F44336'}}>NOPE</span>
+              <span style={{...styles.nopeText, color: 'var(--accent-error)'}}>NOPE</span>
             </motion.div>
           </motion.div>
         </AnimatePresence>
@@ -253,7 +245,7 @@ export default function DiscoveryPage() {
           disabled={passedProfiles.length === 0}
           whileTap={{ scale: 0.9 }}
         >
-          <FaUndo size={22} />
+          <FaUndo size={20} />
         </motion.button>
         
         <motion.button
@@ -269,7 +261,7 @@ export default function DiscoveryPage() {
           onClick={handleSuperLike}
           whileTap={{ scale: 0.9 }}
         >
-          <FaStar size={22} />
+          <FaStar size={20} />
         </motion.button>
 
         <motion.button
@@ -277,7 +269,7 @@ export default function DiscoveryPage() {
           onClick={handleBoost}
           whileTap={{ scale: 0.9 }}
         >
-          <FaBolt size={20} />
+          <FaBolt size={18} />
         </motion.button>
         
         <motion.button
@@ -317,7 +309,7 @@ export default function DiscoveryPage() {
                   </motion.span>
                 ))}
               </div>
-              <h2 style={styles.matchTitle}>It's a Match! 💕</h2>
+              <h2 style={styles.matchTitle}>It's a Match!</h2>
               <p style={styles.matchText}>
                 You and {matchProfile.name} liked each other
               </p>
@@ -362,14 +354,8 @@ export default function DiscoveryPage() {
               transition={{ type: 'spring', duration: 0.5 }}
               style={styles.boostContent}
             >
-              <motion.span
-                style={styles.boostIcon}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-              >
-                ⚡
-              </motion.span>
-              <h2 style={styles.boostTitle}>Profile Boosted! 🚀</h2>
+              <span style={styles.boostIcon}>⚡</span>
+              <h2 style={styles.boostTitle}>Profile Boosted!</h2>
               <p style={styles.boostText}>
                 You're now at the top of their likes!
               </p>
@@ -393,14 +379,8 @@ export default function DiscoveryPage() {
               transition={{ type: 'spring', duration: 0.5 }}
               style={styles.superLikeContent}
             >
-              <motion.span
-                style={styles.superLikeStar}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              >
-                ⭐
-              </motion.span>
-              <h2 style={styles.superLikeTitle}>Super Like Sent! ✨</h2>
+              <span style={styles.superLikeStar}>⭐</span>
+              <h2 style={styles.superLikeTitle}>Super Like Sent!</h2>
               <p style={styles.superLikeText}>
                 You super liked {superLikedProfile.name}
               </p>
@@ -582,9 +562,8 @@ const styles = {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    padding: '16px',
-    paddingBottom: '100px',
-    background: 'linear-gradient(180deg, #1A1A2E 0%, #16213E 100%)',
+    padding: 'var(--space-md)',
+    background: 'var(--bg-dark)',
     overflowY: 'auto',
     overflowX: 'hidden',
   },
@@ -592,28 +571,28 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: '16px',
-    paddingTop: '8px',
+    paddingBottom: 'var(--space-md)',
+    flexShrink: 0,
   },
   logo: {
     fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
+    fontSize: 'var(--text-2xl)',
     fontWeight: 700,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   logoAccent: {
-    color: '#FF6B9D',
+    color: 'var(--primary)',
   },
   filterBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '8px 16px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.15)',
+    gap: 'var(--space-xs)',
+    padding: '10px 16px',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
     borderRadius: '20px',
-    color: '#FFD700',
-    fontSize: '13px',
+    color: 'var(--accent-gold)',
+    fontSize: 'var(--text-sm)',
     fontWeight: 500,
     cursor: 'pointer',
   },
@@ -622,44 +601,46 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '10px',
+    padding: 'var(--space-sm)',
     position: 'relative',
+    minHeight: 0,
   },
   card: {
     position: 'absolute',
-    width: '92%',
+    width: '100%',
     maxWidth: '360px',
-    height: '78%',
-    maxHeight: '540px',
-    borderRadius: '20px',
+    height: '85%',
+    maxHeight: '520px',
+    borderRadius: 'var(--radius-xl)',
     overflow: 'hidden',
-    background: '#2A2A4A',
-    boxShadow: '0 25px 80px rgba(0,0,0,0.5), 0 10px 30px rgba(233,30,99,0.15)',
+    background: 'var(--surface)',
+    boxShadow: 'var(--shadow-lg)',
   },
   cardImage: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
   },
-  cardOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: '20px',
-  },
   cardGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '200px',
+    height: '60%',
     background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
+    pointerEvents: 'none',
+  },
+  cardContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 'var(--space-lg)',
   },
   onlineBadge: {
     position: 'absolute',
-    top: '20px',
-    left: '20px',
+    top: 'var(--space-md)',
+    left: 'var(--space-md)',
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
@@ -668,55 +649,51 @@ const styles = {
     backdropFilter: 'blur(10px)',
     borderRadius: '20px',
     fontSize: '12px',
-    color: '#4CAF50',
+    color: 'var(--accent-success)',
   },
   onlineDot: {
     width: '8px',
     height: '8px',
-    background: '#4CAF50',
+    background: 'var(--accent-success)',
     borderRadius: '50%',
-  },
-  cardInfo: {
-    position: 'relative',
-    zIndex: 1,
   },
   nameRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: 'var(--space-sm)',
   },
   cardName: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '26px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   verifyBadge: {
-    color: '#4CAF50',
-    fontSize: '18px',
+    color: 'var(--accent-success)',
+    fontSize: '16px',
   },
   cardLocation: {
     color: 'rgba(255,255,255,0.8)',
-    fontSize: '14px',
+    fontSize: 'var(--text-sm)',
     marginTop: '4px',
   },
-  quickStats: {
+  interests: {
     display: 'flex',
-    gap: '8px',
-    marginTop: '12px',
+    gap: 'var(--space-sm)',
+    marginTop: 'var(--space-md)',
     flexWrap: 'wrap',
   },
   interestTag: {
     padding: '6px 12px',
-    background: 'rgba(233,30,99,0.3)',
+    background: 'rgba(255, 77, 109, 0.2)',
     borderRadius: '15px',
     fontSize: '12px',
-    color: '#FF6B9D',
+    color: 'var(--primary-light)',
   },
-  bioPreview: {
+  bio: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: '14px',
-    marginTop: '12px',
+    fontSize: 'var(--text-sm)',
+    marginTop: 'var(--space-md)',
     lineHeight: 1.5,
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -725,13 +702,13 @@ const styles = {
   },
   viewDetailsBtn: {
     width: '100%',
-    marginTop: '16px',
+    marginTop: 'var(--space-md)',
     padding: '12px',
     background: 'rgba(255,255,255,0.15)',
     border: 'none',
-    borderRadius: '12px',
+    borderRadius: 'var(--radius-md)',
     color: 'rgba(255,255,255,0.9)',
-    fontSize: '14px',
+    fontSize: 'var(--text-sm)',
     cursor: 'pointer',
   },
   likeOverlay: {
@@ -739,7 +716,7 @@ const styles = {
     top: '40px',
     left: '20px',
     padding: '10px 20px',
-    border: '3px solid #4CAF50',
+    border: '3px solid var(--accent-success)',
     borderRadius: '8px',
     transform: 'rotate(-15deg)',
   },
@@ -748,29 +725,27 @@ const styles = {
     top: '40px',
     right: '20px',
     padding: '10px 20px',
-    border: '3px solid #F44336',
+    border: '3px solid var(--accent-error)',
     borderRadius: '8px',
+    transform: 'rotate(15deg)',
   },
   likeText: {
     fontSize: '32px',
     fontWeight: 700,
-    color: '#4CAF50',
   },
   nopeText: {
     fontSize: '32px',
     fontWeight: 700,
-    color: '#F44336',
   },
   actions: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '20px',
-    padding: '20px 0',
+    gap: 'var(--space-md)',
+    padding: 'var(--space-lg) 0',
+    flexShrink: 0,
   },
   actionBtn: {
-    width: '60px',
-    height: '60px',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -778,43 +753,42 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+    boxShadow: 'var(--shadow-md)',
   },
   undoBtn: {
-    background: 'rgba(255,255,255,0.12)',
-    color: 'rgba(255,255,255,0.7)',
-    border: '1px solid rgba(255,255,255,0.2)',
     width: '48px',
     height: '48px',
+    background: 'var(--surface-glass)',
+    color: 'var(--text-muted)',
+    border: '1px solid var(--surface-glass-border)',
   },
   nopeBtn: {
     width: '68px',
     height: '68px',
-    background: 'rgba(255,255,255,0.12)',
-    color: '#F44336',
-    border: '2px solid rgba(244,67,54,0.4)',
+    background: 'var(--surface-glass)',
+    color: 'var(--accent-error)',
+    border: '2px solid rgba(255, 71, 87, 0.3)',
   },
   superLikeBtn: {
-    background: 'rgba(255,255,255,0.12)',
-    color: '#2196F3',
-    border: '2px solid rgba(33,150,243,0.4)',
     width: '52px',
     height: '52px',
+    background: 'var(--surface-glass)',
+    color: 'var(--accent-info)',
+    border: '2px solid rgba(55, 66, 250, 0.3)',
   },
   boostBtn: {
     width: '52px',
     height: '52px',
-    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+    background: 'linear-gradient(135deg, var(--accent-gold), #FFA500)',
     color: '#fff',
     border: 'none',
-    boxShadow: '0 4px 20px rgba(255,215,0,0.4)',
   },
   likeBtn: {
     width: '68px',
     height: '68px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     color: '#fff',
-    boxShadow: '0 8px 30px rgba(233,30,99,0.5)',
+    boxShadow: '0 8px 30px rgba(255, 77, 109, 0.4)',
   },
   emptyState: {
     height: '100%',
@@ -822,67 +796,67 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px',
+    padding: 'var(--space-xxl)',
     textAlign: 'center',
   },
   emptyIcon: {
-    fontSize: '80px',
-    marginBottom: '20px',
+    fontSize: '64px',
+    marginBottom: 'var(--space-lg)',
   },
   emptyTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
-    color: '#fff',
-    marginBottom: '12px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
+    color: 'var(--text-primary)',
+    marginBottom: 'var(--space-sm)',
   },
   emptyText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: '16px',
+    color: 'var(--text-secondary)',
+    fontSize: 'var(--text-base)',
     lineHeight: 1.6,
   },
   matchOverlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.8)',
+    background: 'rgba(0,0,0,0.85)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100,
-    padding: '20px',
+    zIndex: 200,
+    padding: 'var(--space-lg)',
   },
   matchCard: {
     width: '100%',
     maxWidth: '360px',
-    background: 'linear-gradient(135deg, #E91E63 0%, #9C27B0 100%)',
-    borderRadius: '24px',
-    padding: '40px',
+    background: 'linear-gradient(135deg, var(--primary), #9C27B0)',
+    borderRadius: 'var(--radius-xl)',
+    padding: 'var(--space-xl)',
     textAlign: 'center',
   },
   matchHearts: {
     display: 'flex',
     justifyContent: 'center',
     gap: '5px',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-lg)',
   },
   matchHeart: {
     fontSize: '24px',
   },
   matchTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '36px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-3xl)',
     fontWeight: 700,
     color: '#fff',
-    marginBottom: '10px',
+    marginBottom: 'var(--space-sm)',
   },
   matchText: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: '16px',
-    marginBottom: '30px',
+    fontSize: 'var(--text-base)',
+    marginBottom: 'var(--space-lg)',
   },
   matchPhotos: {
     display: 'flex',
     justifyContent: 'center',
-    marginBottom: '30px',
+    marginBottom: 'var(--space-lg)',
   },
   matchPhoto: {
     width: '100px',
@@ -894,17 +868,17 @@ const styles = {
   matchActions: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: 'var(--space-sm)',
   },
   sendMsgBtn: {
     width: '100%',
     padding: '16px',
     background: '#fff',
     border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#E91E63',
+    color: 'var(--primary)',
     cursor: 'pointer',
   },
   keepSwipingBtn: {
@@ -912,8 +886,8 @@ const styles = {
     padding: '16px',
     background: 'transparent',
     border: '2px solid #fff',
-    borderRadius: '12px',
-    fontSize: '16px',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
     color: '#fff',
     cursor: 'pointer',
@@ -922,14 +896,14 @@ const styles = {
     position: 'fixed',
     inset: 0,
     background: 'rgba(0,0,0,0.8)',
-    zIndex: 100,
+    zIndex: 200,
     display: 'flex',
     alignItems: 'flex-end',
   },
   detailSheet: {
     width: '100%',
     maxHeight: '90vh',
-    background: '#1A1A2E',
+    background: 'var(--bg-dark)',
     borderTopLeftRadius: '30px',
     borderTopRightRadius: '30px',
     overflow: 'auto',
@@ -937,69 +911,71 @@ const styles = {
   detailHandle: {
     width: '40px',
     height: '4px',
-    background: 'rgba(255,255,255,0.3)',
+    background: 'var(--surface-glass-border)',
     borderRadius: '2px',
     margin: '12px auto',
   },
   detailPhotos: {
     display: 'flex',
-    gap: '10px',
-    padding: '0 20px',
+    gap: 'var(--space-sm)',
+    padding: '0 var(--space-md)',
+    paddingBottom: 'var(--space-md)',
     overflowX: 'auto',
-    paddingBottom: '20px',
+    paddingBottom: 'var(--space-md)',
   },
   detailPhoto: {
     width: '200px',
     height: '280px',
-    borderRadius: '16px',
+    borderRadius: 'var(--radius-lg)',
     objectFit: 'cover',
     flexShrink: 0,
   },
   detailContent: {
-    padding: '20px',
+    padding: 'var(--space-md)',
+    paddingBottom: 'var(--space-xxl)',
   },
   detailHeader: {
-    marginBottom: '24px',
+    marginBottom: 'var(--space-lg)',
   },
   detailSection: {
-    marginBottom: '24px',
+    marginBottom: 'var(--space-lg)',
   },
   detailInterests: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '8px',
+    gap: 'var(--space-sm)',
   },
   detailInterestTag: {
     padding: '8px 16px',
-    background: 'rgba(233,30,99,0.2)',
+    background: 'rgba(255, 77, 109, 0.2)',
     borderRadius: '20px',
-    fontSize: '14px',
-    color: '#FF6B9D',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--primary-light)',
   },
   promptAnswer: {
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '12px',
-    padding: '16px',
-    marginBottom: '12px',
+    background: 'var(--surface-glass)',
+    borderRadius: 'var(--radius-md)',
+    padding: 'var(--space-md)',
+    marginBottom: 'var(--space-sm)',
   },
   promptQuestion: {
-    fontSize: '14px',
-    color: '#FF6B9D',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--primary-light)',
     marginBottom: '6px',
   },
   promptText: {
-    fontSize: '15px',
-    color: '#fff',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-primary)',
   },
   superLikeOverlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(33,150,243,0.9)',
+    background: 'rgba(55, 66, 250, 0.9)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100,
-    padding: '20px',
+    zIndex: 200,
+    padding: 'var(--space-lg)',
   },
   superLikeContent: {
     textAlign: 'center',
@@ -1007,28 +983,28 @@ const styles = {
   superLikeStar: {
     fontSize: '60px',
     display: 'block',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-lg)',
   },
   superLikeTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '32px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-3xl)',
     fontWeight: 700,
     color: '#fff',
-    marginBottom: '10px',
+    marginBottom: 'var(--space-sm)',
   },
   superLikeText: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: '18px',
+    fontSize: 'var(--text-lg)',
   },
   boostOverlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(255,215,0,0.9)',
+    background: 'rgba(255, 215, 0, 0.95)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100,
-    padding: '20px',
+    zIndex: 200,
+    padding: 'var(--space-lg)',
   },
   boostContent: {
     textAlign: 'center',
@@ -1036,94 +1012,94 @@ const styles = {
   boostIcon: {
     fontSize: '60px',
     display: 'block',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-lg)',
   },
   boostTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '32px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-3xl)',
     fontWeight: 700,
     color: '#fff',
-    marginBottom: '10px',
+    marginBottom: 'var(--space-sm)',
   },
   boostText: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: '18px',
+    fontSize: 'var(--text-lg)',
   },
   filterRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    marginTop: '10px',
+    gap: 'var(--space-sm)',
+    marginTop: 'var(--space-sm)',
   },
   filterInput: {
     width: '80px',
     padding: '12px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '10px',
-    fontSize: '16px',
-    color: '#fff',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-primary)',
     textAlign: 'center',
   },
   filterSpan: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: '14px',
+    color: 'var(--text-muted)',
+    fontSize: 'var(--text-sm)',
   },
   filterRange: {
     width: '100%',
-    marginTop: '10px',
-    accentColor: '#FF6B9D',
+    marginTop: 'var(--space-sm)',
+    accentColor: 'var(--primary)',
   },
   filterGenderRow: {
     display: 'flex',
-    gap: '10px',
-    marginTop: '10px',
+    gap: 'var(--space-sm)',
+    marginTop: 'var(--space-sm)',
   },
   filterGenderBtn: {
     flex: 1,
     padding: '12px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '10px',
-    fontSize: '14px',
-    color: 'rgba(255,255,255,0.7)',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
     cursor: 'pointer',
   },
   filterGenderBtnActive: {
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     borderColor: 'transparent',
     color: '#fff',
   },
   editActions: {
     display: 'flex',
-    gap: '12px',
-    marginTop: '20px',
-    paddingBottom: '20px',
+    gap: 'var(--space-sm)',
+    marginTop: 'var(--space-lg)',
+    paddingBottom: 'var(--space-lg)',
   },
   cancelEditBtn: {
     flex: 1,
     padding: '14px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-    fontSize: '16px',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: 'rgba(255,255,255,0.7)',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
   },
   saveEditBtn: {
     flex: 1,
     padding: '14px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
     color: '#fff',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
+    gap: 'var(--space-xs)',
   },
 };

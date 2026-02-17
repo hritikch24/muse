@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEdit, FaCog, FaShieldAlt, FaQuestionCircle, FaInfoCircle, FaHeart, FaStar, FaCamera, FaCheck, FaPowerOff, FaChevronRight, FaTimes, FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaEdit, FaCog, FaShieldAlt, FaQuestionCircle, FaInfoCircle, FaHeart, FaStar, FaCamera, FaCheck, FaPowerOff, FaChevronRight, FaTimes } from 'react-icons/fa';
 import useStore from '../store/useStore';
 import '../styles/globals.css';
 
@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const [editPrompts, setEditPrompts] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsModalContent, setSettingsModalContent] = useState(null);
+  
   const currentUser = useStore(state => state.currentUser);
   const logout = useStore(state => state.logout);
   const matchedProfiles = useStore(state => state.matchedProfiles);
@@ -85,12 +86,6 @@ export default function ProfilePage() {
   };
 
   const handleCancelEdit = () => {
-    setEditName(currentUser?.name || '');
-    setEditAge(currentUser?.age?.toString() || '');
-    setEditBio(currentUser?.bio || '');
-    setEditLocation(currentUser?.location || '');
-    setEditInterests(currentUser?.interests || []);
-    setEditPrompts(currentUser?.prompts || []);
     setIsEditing(false);
   };
 
@@ -105,12 +100,6 @@ export default function ProfilePage() {
   const updatePromptAnswer = (index, answer) => {
     const newPrompts = [...editPrompts];
     newPrompts[index].answer = answer;
-    setEditPrompts(newPrompts);
-  };
-
-  const changePromptQuestion = (index, newQuestion) => {
-    const newPrompts = [...editPrompts];
-    newPrompts[index].question = newQuestion;
     setEditPrompts(newPrompts);
   };
 
@@ -206,48 +195,49 @@ export default function ProfilePage() {
           style={{ display: 'none' }}
           onChange={handlePhotoUpload}
         />
-        <div style={styles.photoSection}>
-          <div style={styles.photoGrid}>
-            {userPhotos.length > 0 ? (
-              userPhotos.map((photo, index) => (
-                <div key={index} style={styles.photoItem}>
-                  <img src={photo} alt="" style={styles.gridPhoto} />
-                  {index > 0 && (
-                    <button 
-                      style={styles.removePhotoBtn}
-                      onClick={() => handleRemovePhoto(index)}
-                    >
-                      <FaTimes size={12} />
-                    </button>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div style={styles.emptyPhotoSlot}>
-                <FaCamera size={24} />
+        
+        {/* Photo Grid */}
+        <div style={styles.photoGrid}>
+          {userPhotos.length > 0 ? (
+            userPhotos.map((photo, index) => (
+              <div key={index} style={styles.photoItem}>
+                <img src={photo} alt="" style={styles.gridPhoto} />
+                {index > 0 && (
+                  <button 
+                    style={styles.removePhotoBtn}
+                    onClick={() => handleRemovePhoto(index)}
+                  >
+                    <FaTimes size={12} />
+                  </button>
+                )}
+                {index === 0 && <div style={styles.primaryBadge}>Primary</div>}
               </div>
-            )}
-            {userPhotos.length < 6 && (
-              <div style={styles.addPhotoSlot} onClick={handleAddPhotoClick}>
-                <FaCamera size={24} />
-                <span>Add</span>
-              </div>
-            )}
-          </div>
-          <button 
-            style={styles.cameraBtn}
-            onClick={handleAddPhotoClick}
-          >
-            <FaCamera size={16} />
-          </button>
-          {currentUser?.online && (
-            <div style={styles.onlineIndicator}></div>
+            ))
+          ) : (
+            <div style={styles.emptyPhotoSlot}>
+              <FaCamera size={24} />
+            </div>
+          )}
+          {userPhotos.length < 6 && (
+            <div style={styles.addPhotoSlot} onClick={handleAddPhotoClick}>
+              <FaCamera size={24} />
+              <span>Add</span>
+            </div>
           )}
         </div>
+        
+        <button 
+          style={styles.cameraBtn}
+          onClick={handleAddPhotoClick}
+        >
+          <FaCamera size={16} />
+        </button>
+        
         <div style={styles.photoCount}>
           <span>{userPhotos.length} photos</span>
         </div>
 
+        {/* Profile Info */}
         <div style={styles.profileInfo}>
           <h2 style={styles.profileName}>
             {userName}, {userAge}
@@ -260,7 +250,7 @@ export default function ProfilePage() {
         <div style={styles.statsRow}>
           {stats.map((stat, index) => (
             <div key={index} style={styles.statItem}>
-              <stat.icon size={18} style={{ color: '#FF6B9D' }} />
+              <stat.icon size={18} style={{ color: 'var(--primary)' }} />
               <span style={styles.statValue}>{stat.value}</span>
               <span style={styles.statLabel}>{stat.label}</span>
             </div>
@@ -308,7 +298,7 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3 style={styles.sectionTitle}>Answers</h3>
+        <h3 style={styles.sectionTitle}>About</h3>
         <div style={styles.promptsList}>
           {userPrompts.map((prompt, index) => (
             <div key={index} style={styles.promptCard}>
@@ -319,7 +309,7 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
-      {/* Settings - Converted to Bottom Sheet */}
+      {/* Settings */}
       <motion.div 
         style={styles.section}
         initial={{ opacity: 0, y: 20 }}
@@ -327,7 +317,7 @@ export default function ProfilePage() {
         transition={{ delay: 0.4 }}
       >
         <h3 style={styles.sectionTitle}>Settings</h3>
-          <div style={styles.settingsList}>
+        <div style={styles.settingsList}>
           {settings.map((setting, index) => (
             <button key={index} style={styles.settingItem} onClick={() => handleSettingClick(setting.action)}>
               <div style={styles.settingIcon}>
@@ -337,7 +327,7 @@ export default function ProfilePage() {
                 <p style={styles.settingLabel}>{setting.label}</p>
                 <p style={styles.settingDesc}>{setting.description}</p>
               </div>
-              <FaChevronRight size={14} style={{ color: 'rgba(255,255,255,0.3)' }} />
+              <FaChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
             </button>
           ))}
         </div>
@@ -529,7 +519,11 @@ export default function ProfilePage() {
                     <div key={index} style={styles.promptEditCard}>
                       <select
                         value={prompt.question}
-                        onChange={(e) => changePromptQuestion(index, e.target.value)}
+                        onChange={(e) => {
+                          const newPrompts = [...editPrompts];
+                          newPrompts[index].question = e.target.value;
+                          setEditPrompts(newPrompts);
+                        }}
                         style={styles.promptSelect}
                       >
                         {PROMPT_QUESTIONS.map((q) => (
@@ -569,63 +563,51 @@ export default function ProfilePage() {
 const styles = {
   container: {
     height: '100%',
-    padding: '20px',
+    padding: 'var(--space-md)',
     overflowY: 'auto',
-    paddingBottom: '100px',
+    background: 'var(--bg-dark)',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-md)',
   },
   title: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   editBtn: {
     width: '40px',
     height: '40px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
+    borderRadius: 'var(--radius-full)',
+    background: 'var(--surface-glass)',
     border: 'none',
-    color: '#fff',
+    color: 'var(--text-primary)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
   },
   profileCard: {
-    background: 'rgba(255,255,255,0.06)',
-    borderRadius: '24px',
-    padding: '24px',
-    border: '1px solid rgba(255,255,255,0.1)',
-    marginBottom: '16px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-  },
-  photoSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  mainPhotoWrapper: {
-    position: 'relative',
-    width: '120px',
-    height: '120px',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-xl)',
+    padding: 'var(--space-lg)',
+    border: '1px solid var(--surface-glass-border)',
+    marginBottom: 'var(--space-md)',
   },
   photoGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '8px',
-    marginBottom: '16px',
+    gap: 'var(--space-sm)',
+    marginBottom: 'var(--space-md)',
   },
   photoItem: {
     position: 'relative',
     aspectRatio: '1',
-    borderRadius: '12px',
+    borderRadius: 'var(--radius-md)',
     overflow: 'hidden',
   },
   gridPhoto: {
@@ -639,8 +621,8 @@ const styles = {
     right: '4px',
     width: '24px',
     height: '24px',
-    borderRadius: '50%',
-    background: 'rgba(244,67,54,0.9)',
+    borderRadius: 'var(--radius-full)',
+    background: 'rgba(255, 71, 87, 0.9)',
     border: 'none',
     color: '#fff',
     display: 'flex',
@@ -648,97 +630,91 @@ const styles = {
     justifyContent: 'center',
     cursor: 'pointer',
   },
+  primaryBadge: {
+    position: 'absolute',
+    bottom: '8px',
+    left: '8px',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#fff',
+  },
   emptyPhotoSlot: {
     width: '100%',
     aspectRatio: '1',
-    borderRadius: '12px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '2px dashed rgba(255,255,255,0.2)',
+    borderRadius: 'var(--radius-md)',
+    background: 'var(--surface-glass)',
+    border: '2px dashed var(--surface-glass-border)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-muted)',
   },
   addPhotoSlot: {
     width: '100%',
     aspectRatio: '1',
-    borderRadius: '12px',
-    background: 'rgba(233,30,99,0.15)',
-    border: '2px dashed rgba(233,30,99,0.4)',
+    borderRadius: 'var(--radius-md)',
+    background: 'rgba(255, 77, 109, 0.15)',
+    border: '2px dashed rgba(255, 77, 109, 0.4)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    color: '#FF6B9D',
+    color: 'var(--primary-light)',
     fontSize: '12px',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  mainPhoto: {
-    width: '100%',
-    height: '100%',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    border: '3px solid #FF6B9D',
   },
   cameraBtn: {
     position: 'absolute',
-    bottom: '0',
-    right: '0',
+    top: 'calc(80px + var(--space-lg))',
+    right: 'calc(var(--space-lg) + 30px)',
     width: '36px',
     height: '36px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
-    border: '3px solid #1A1A2E',
+    borderRadius: 'var(--radius-full)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+    border: '3px solid var(--surface)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
   },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: '8px',
-    right: '8px',
-    width: '16px',
-    height: '16px',
-    borderRadius: '50%',
-    background: '#4CAF50',
-    border: '3px solid #1A1A2E',
-  },
   photoCount: {
-    marginTop: '8px',
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.6)',
+    marginTop: 'var(--space-sm)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
+    textAlign: 'center',
   },
   profileInfo: {
     textAlign: 'center',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-md)',
   },
   profileName: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '24px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
     marginBottom: '4px',
   },
   profileLocation: {
-    fontSize: '14px',
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: '8px',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
+    marginBottom: 'var(--space-sm)',
   },
   profileBio: {
-    fontSize: '15px',
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-secondary)',
     lineHeight: 1.5,
   },
   statsRow: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '40px',
-    paddingTop: '16px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
+    gap: 'var(--space-xl)',
+    paddingTop: 'var(--space-md)',
+    borderTop: '1px solid var(--surface-glass-border)',
   },
   statItem: {
     display: 'flex',
@@ -747,91 +723,92 @@ const styles = {
     gap: '4px',
   },
   statValue: {
-    fontSize: '20px',
+    fontSize: 'var(--text-xl)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   statLabel: {
-    fontSize: '12px',
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
   },
   premiumCard: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '16px 20px',
-    background: 'linear-gradient(135deg, rgba(233,30,99,0.2), rgba(156,39,176,0.2))',
-    borderRadius: '16px',
-    border: '1px solid rgba(233,30,99,0.3)',
-    marginBottom: '16px',
+    padding: 'var(--space-md)',
+    background: 'linear-gradient(135deg, rgba(255, 77, 109, 0.15), rgba(156, 39, 176, 0.15))',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid rgba(255, 77, 109, 0.3)',
+    marginBottom: 'var(--space-md)',
+    cursor: 'pointer',
   },
   premiumContent: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: 'var(--space-sm)',
   },
   premiumIcon: {
     fontSize: '24px',
   },
   premiumTitle: {
-    fontSize: '15px',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   premiumText: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
   },
   premiumBtn: {
     padding: '8px 16px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: 'var(--radius-sm)',
     color: '#fff',
-    fontSize: '13px',
+    fontSize: 'var(--text-sm)',
     fontWeight: 600,
     cursor: 'pointer',
   },
   section: {
-    marginBottom: '20px',
+    marginBottom: 'var(--space-md)',
   },
   sectionTitle: {
-    fontSize: '16px',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#fff',
-    marginBottom: '12px',
+    color: 'var(--text-primary)',
+    marginBottom: 'var(--space-sm)',
   },
   interestsGrid: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '8px',
+    gap: 'var(--space-sm)',
   },
   interestTag: {
     padding: '8px 16px',
-    background: 'rgba(233,30,99,0.15)',
+    background: 'rgba(255, 77, 109, 0.15)',
     borderRadius: '20px',
-    fontSize: '14px',
-    color: '#FF6B9D',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--primary-light)',
   },
   promptsList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: 'var(--space-sm)',
   },
   promptCard: {
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '12px',
-    padding: '16px',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--surface-glass)',
+    borderRadius: 'var(--radius-md)',
+    padding: 'var(--space-md)',
+    border: '1px solid var(--surface-glass-border)',
   },
   promptQuestion: {
-    fontSize: '13px',
-    color: '#FF6B9D',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--primary-light)',
     marginBottom: '6px',
   },
   promptAnswer: {
-    fontSize: '15px',
-    color: '#fff',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-primary)',
   },
   settingsList: {
     display: 'flex',
@@ -841,292 +818,58 @@ const styles = {
   settingItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
-    padding: '14px 16px',
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '12px',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    background: 'var(--surface-glass)',
+    borderRadius: 'var(--radius-md)',
     border: 'none',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    textAlign: 'left',
+    width: '100%',
   },
   settingIcon: {
     width: '40px',
     height: '40px',
-    borderRadius: '10px',
-    background: 'rgba(255,255,255,0.1)',
+    borderRadius: 'var(--radius-sm)',
+    background: 'var(--surface-elevated)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'rgba(255,255,255,0.8)',
+    color: 'var(--text-secondary)',
   },
   settingInfo: {
     flex: 1,
-    textAlign: 'left',
   },
   settingLabel: {
-    fontSize: '15px',
+    fontSize: 'var(--text-base)',
     fontWeight: 500,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   settingDesc: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.5)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
   },
   logoutBtn: {
     width: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '10px',
-    padding: '16px',
-    background: 'rgba(244,67,54,0.15)',
-    border: '1px solid rgba(244,67,54,0.3)',
-    borderRadius: '12px',
-    color: '#F44336',
-    fontSize: '15px',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    background: 'rgba(255, 71, 87, 0.15)',
+    border: '1px solid rgba(255, 71, 87, 0.3)',
+    borderRadius: 'var(--radius-md)',
+    color: 'var(--accent-error)',
+    fontSize: 'var(--text-base)',
     fontWeight: 500,
     cursor: 'pointer',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-lg)',
   },
   version: {
     textAlign: 'center',
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.3)',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.8)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 200,
-    padding: '20px',
-  },
-  premiumModal: {
-    width: '100%',
-    maxWidth: '360px',
-    background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
-    borderRadius: '24px',
-    padding: '30px',
-    position: 'relative',
-    border: '1px solid rgba(233,30,99,0.3)',
-  },
-  modalClose: {
-    position: 'absolute',
-    top: '15px',
-    right: '15px',
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
-    border: 'none',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  modalTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
-    fontWeight: 600,
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: '8px',
-  },
-  modalSubtitle: {
-    fontSize: '15px',
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'center',
-    marginBottom: '24px',
-  },
-  plansList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  planCard: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 20px',
-    background: 'rgba(255,255,255,0.06)',
-    borderRadius: '16px',
-    border: '1px solid rgba(255,255,255,0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  planInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  planName: {
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#fff',
-  },
-  planDuration: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.5)',
-  },
-  planPrice: {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#FF6B9D',
-  },
-  editModal: {
-    width: '90%',
-    maxWidth: '400px',
-    background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
-    borderRadius: '24px',
-    padding: '24px',
-    position: 'relative',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  editModalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  editModalTitle: {
-    fontSize: '22px',
-    fontWeight: 600,
-    color: '#fff',
-    margin: 0,
-  },
-  editForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  editField: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    marginBottom: '16px',
-  },
-  editLabel: {
-    fontSize: '14px',
-    fontWeight: 500,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  interestsEditGrid: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    marginTop: '8px',
-  },
-  interestChip: {
-    padding: '8px 14px',
-    borderRadius: '20px',
-    border: '1px solid rgba(255,255,255,0.2)',
-    background: 'rgba(255,255,255,0.05)',
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: '13px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    transition: 'all 0.2s ease',
-  },
-  interestChipActive: {
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
-    borderColor: 'transparent',
-    color: '#fff',
-  },
-  interestsHint: {
-    fontSize: '12px',
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: '8px',
-  },
-  promptEditCard: {
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '12px',
-    padding: '12px',
-    marginBottom: '10px',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-  promptSelect: {
-    width: '100%',
-    padding: '10px 12px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '8px',
-    fontSize: '14px',
-    color: '#FF6B9D',
-    outline: 'none',
-    marginBottom: '8px',
-    cursor: 'pointer',
-  },
-  promptInput: {
-    width: '100%',
-    padding: '10px 12px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '8px',
-    fontSize: '14px',
-    color: '#fff',
-    outline: 'none',
-  },
-  editInput: {
-    padding: '14px 16px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-    fontSize: '16px',
-    color: '#fff',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-  },
-  editTextarea: {
-    padding: '14px 16px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-    fontSize: '16px',
-    color: '#fff',
-    outline: 'none',
-    resize: 'none',
-    transition: 'all 0.3s ease',
-    fontFamily: 'inherit',
-  },
-  editActions: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '8px',
-  },
-  cancelEditBtn: {
-    flex: 1,
-    padding: '14px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: 600,
-    color: 'rgba(255,255,255,0.7)',
-    cursor: 'pointer',
-  },
-  saveEditBtn: {
-    flex: 1,
-    padding: '14px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#fff',
-    cursor: 'pointer',
-  },
-  settingsModal: {
-    width: '90%',
-    maxWidth: '400px',
-    background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
-    borderRadius: '24px',
-    padding: '24px',
-    position: 'relative',
-    border: '1px solid rgba(255,255,255,0.1)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+    paddingBottom: 'var(--space-xl)',
   },
   bottomSheetOverlay: {
     position: 'fixed',
@@ -1140,55 +883,261 @@ const styles = {
   bottomSheet: {
     width: '100%',
     maxWidth: '500px',
-    background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
+    background: 'var(--surface)',
     borderTopLeftRadius: '24px',
     borderTopRightRadius: '24px',
-    padding: '20px',
-    paddingBottom: '40px',
+    padding: 'var(--space-md)',
+    paddingBottom: 'calc(var(--space-xl) + var(--safe-area-bottom))',
     maxHeight: '80vh',
     overflow: 'auto',
   },
   bottomSheetHandle: {
     width: '40px',
     height: '4px',
-    background: 'rgba(255,255,255,0.3)',
+    background: 'var(--surface-glass-border)',
     borderRadius: '2px',
-    margin: '0 auto 16px',
+    margin: '0 auto var(--space-md)',
   },
   bottomSheetHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '16px',
+    marginBottom: 'var(--space-md)',
   },
   bottomSheetTitle: {
-    fontSize: '22px',
+    fontSize: 'var(--text-xl)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
     margin: 0,
   },
   bottomSheetContent: {
-    paddingBottom: '20px',
+    paddingBottom: 'var(--space-md)',
   },
-  settingsModalHeader: {
+  settingsModalText: {
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-secondary)',
+    lineHeight: 1.6,
+    whiteSpace: 'pre-line',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 200,
+    padding: 'var(--space-md)',
+  },
+  premiumModal: {
+    width: '100%',
+    maxWidth: '360px',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-xl)',
+    padding: 'var(--space-lg)',
+    position: 'relative',
+    border: '1px solid rgba(255, 77, 109, 0.3)',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 'var(--space-md)',
+    right: 'var(--space-md)',
+    width: '36px',
+    height: '36px',
+    borderRadius: 'var(--radius-full)',
+    background: 'var(--surface-glass)',
+    border: 'none',
+    color: 'var(--text-primary)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  modalTitle: {
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    textAlign: 'center',
+    marginBottom: 'var(--space-xs)',
+  },
+  modalSubtitle: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
+    textAlign: 'center',
+    marginBottom: 'var(--space-lg)',
+  },
+  plansList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  planCard: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    padding: 'var(--space-md)',
+    background: 'var(--surface-glass)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--surface-glass-border)',
+    cursor: 'pointer',
   },
-  settingsModalTitle: {
-    fontSize: '22px',
+  planInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  planName: {
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
+  },
+  planDuration: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+  },
+  planPrice: {
+    fontSize: 'var(--text-xl)',
+    fontWeight: 700,
+    color: 'var(--primary)',
+  },
+  editModal: {
+    width: '90%',
+    maxWidth: '400px',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-xl)',
+    padding: 'var(--space-lg)',
+    position: 'relative',
+    border: '1px solid var(--surface-glass-border)',
+    maxHeight: '90vh',
+    overflow: 'auto',
+  },
+  editModalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 'var(--space-md)',
+  },
+  editModalTitle: {
+    fontSize: 'var(--text-xl)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
     margin: 0,
   },
-  settingsModalContent: {
-    padding: '10px 0',
+  editForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-md)',
   },
-  settingsModalText: {
-    fontSize: '15px',
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 1.6,
-    whiteSpace: 'pre-line',
+  editField: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  editLabel: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 500,
+    color: 'var(--text-secondary)',
+  },
+  interestsEditGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 'var(--space-xs)',
+    marginTop: 'var(--space-xs)',
+  },
+  interestChip: {
+    padding: '8px 14px',
+    borderRadius: '20px',
+    border: '1px solid var(--surface-glass-border)',
+    background: 'var(--surface-glass)',
+    color: 'var(--text-secondary)',
+    fontSize: 'var(--text-xs)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  interestChipActive: {
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+    borderColor: 'transparent',
+    color: '#fff',
+  },
+  interestsHint: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+    marginTop: 'var(--space-xs)',
+  },
+  promptEditCard: {
+    background: 'var(--surface-glass)',
+    borderRadius: 'var(--radius-sm)',
+    padding: 'var(--space-sm)',
+    marginBottom: 'var(--space-xs)',
+  },
+  promptSelect: {
+    width: '100%',
+    padding: '10px 12px',
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--primary-light)',
+    outline: 'none',
+    marginBottom: 'var(--space-xs)',
+    cursor: 'pointer',
+  },
+  promptInput: {
+    width: '100%',
+    padding: '10px 12px',
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+  },
+  editInput: {
+    padding: '14px 16px',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+  },
+  editTextarea: {
+    padding: '14px 16px',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-base)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    resize: 'none',
+  },
+  editActions: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+    marginTop: 'var(--space-sm)',
+  },
+  cancelEditBtn: {
+    flex: 1,
+    padding: '14px',
+    background: 'var(--surface-glass)',
+    border: '1px solid var(--surface-glass-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-base)',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    cursor: 'pointer',
+  },
+  saveEditBtn: {
+    flex: 1,
+    padding: '14px',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+    border: 'none',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-base)',
+    fontWeight: 600,
+    color: '#fff',
+    cursor: 'pointer',
   },
 };

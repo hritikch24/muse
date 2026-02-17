@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHeart, FaComment, FaTimes, FaCheck, FaArrowLeft } from 'react-icons/fa';
+import { FaHeart, FaComment, FaTimes } from 'react-icons/fa';
 import useStore from '../store/useStore';
-import { formatDistanceToNow } from 'date-fns';
 import '../styles/globals.css';
 
 export default function MatchesPage() {
@@ -23,10 +22,6 @@ export default function MatchesPage() {
     navigate(`/chat/${chatId}`);
   };
 
-  const handleUpgradeClick = () => {
-    navigate('/profile');
-  };
-
   const handleRequestAction = (requestId, action) => {
     console.log(`Request ${requestId} ${action}`);
   };
@@ -36,17 +31,15 @@ export default function MatchesPage() {
       {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.title}>Matches</h1>
-        <div style={styles.headerActions}>
-          <button 
-            style={styles.requestsBtn}
-            onClick={() => setShowRequests(!showRequests)}
-          >
-            <FaHeart size={18} />
-            {requests.length > 0 && (
-              <span style={styles.requestsBadge}>{requests.length}</span>
-            )}
-          </button>
-        </div>
+        <button 
+          style={styles.requestsBtn}
+          onClick={() => setShowRequests(!showRequests)}
+        >
+          <FaHeart size={18} />
+          {requests.length > 0 && (
+            <span style={styles.requestsBadge}>{requests.length}</span>
+          )}
+        </button>
       </div>
 
       {/* Likes Requests */}
@@ -90,8 +83,8 @@ export default function MatchesPage() {
         )}
       </AnimatePresence>
 
-      {/* Matches Grid */}
-      <div style={styles.matchesGrid}>
+      {/* Matches List */}
+      <div style={styles.matchesList}>
         {matchedProfiles.length === 0 ? (
           <div style={styles.emptyState}>
             <span style={styles.emptyIcon}>💕</span>
@@ -108,7 +101,7 @@ export default function MatchesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               style={styles.matchCard}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.01 }}
             >
               <div style={styles.matchImageWrapper}>
                 <img 
@@ -116,9 +109,6 @@ export default function MatchesPage() {
                   alt={match.user.name}
                   style={styles.matchImage}
                 />
-                <div style={styles.matchTime}>
-                  {formatDistanceToNow(new Date(match.matchedAt), { addSuffix: true })}
-                </div>
               </div>
               <div style={styles.matchInfo}>
                 <h3 style={styles.matchName}>{match.user.name}, {match.user.age}</h3>
@@ -127,7 +117,7 @@ export default function MatchesPage() {
                   style={styles.chatBtn}
                   onClick={() => handleStartChat(match)}
                 >
-                  <FaComment size={16} />
+                  <FaComment size={14} />
                   Say Hi
                 </button>
               </div>
@@ -145,7 +135,7 @@ export default function MatchesPage() {
             <p style={styles.premiumText}>See who liked you & more!</p>
           </div>
         </div>
-        <button style={styles.upgradeBtn} onClick={handleUpgradeClick}>Upgrade</button>
+        <button style={styles.upgradeBtn} onClick={() => navigate('/profile')}>Upgrade</button>
       </div>
     </div>
   );
@@ -154,32 +144,29 @@ export default function MatchesPage() {
 const styles = {
   container: {
     height: '100%',
-    padding: '20px',
+    padding: 'var(--space-md)',
     overflowY: 'auto',
+    background: 'var(--bg-dark)',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: 'var(--space-md)',
   },
   title: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-2xl)',
     fontWeight: 600,
-    color: '#fff',
-  },
-  headerActions: {
-    display: 'flex',
-    gap: '10px',
+    color: 'var(--text-primary)',
   },
   requestsBtn: {
     width: '44px',
     height: '44px',
-    borderRadius: '50%',
-    background: 'rgba(233,30,99,0.2)',
+    borderRadius: 'var(--radius-full)',
+    background: 'rgba(255, 77, 109, 0.2)',
     border: 'none',
-    color: '#FF6B9D',
+    color: 'var(--primary)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -192,7 +179,7 @@ const styles = {
     right: '-4px',
     minWidth: '18px',
     height: '18px',
-    background: '#E91E63',
+    background: 'var(--primary)',
     borderRadius: '9px',
     fontSize: '11px',
     fontWeight: 600,
@@ -202,194 +189,188 @@ const styles = {
     justifyContent: 'center',
   },
   requestsSection: {
-    marginBottom: '20px',
+    marginBottom: 'var(--space-md)',
     overflow: 'hidden',
   },
   requestsTitle: {
-    fontSize: '14px',
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: '12px',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
+    marginBottom: 'var(--space-sm)',
     fontWeight: 500,
   },
   requestsList: {
     display: 'flex',
-    gap: '12px',
+    gap: 'var(--space-sm)',
     overflowX: 'auto',
-    paddingBottom: '10px',
+    paddingBottom: 'var(--space-sm)',
   },
   requestCard: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
-    background: 'rgba(255,255,255,0.06)',
-    borderRadius: '16px',
-    minWidth: '280px',
-    border: '1px solid rgba(255,255,255,0.1)',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-sm)',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-md)',
+    minWidth: '240px',
+    border: '1px solid var(--surface-glass-border)',
   },
   requestPhoto: {
     width: '56px',
     height: '56px',
-    borderRadius: '50%',
+    borderRadius: 'var(--radius-full)',
     objectFit: 'cover',
   },
   requestInfo: {
     flex: 1,
   },
   requestName: {
-    fontSize: '15px',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   requestTime: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.5)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
   },
   requestActions: {
     display: 'flex',
-    gap: '8px',
+    gap: 'var(--space-xs)',
   },
   requestActionBtn: {
     width: '36px',
     height: '36px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
+    borderRadius: 'var(--radius-full)',
+    background: 'var(--surface-glass)',
     border: 'none',
-    color: 'rgba(255,255,255,0.7)',
+    color: 'var(--text-muted)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
   },
   requestActionBtnActive: {
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     color: '#fff',
   },
-  matchesGrid: {
+  matchesList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: 'var(--space-sm)',
   },
   matchCard: {
     display: 'flex',
-    gap: '16px',
-    padding: '16px',
-    background: 'rgba(255,255,255,0.06)',
-    borderRadius: '20px',
-    border: '1px solid rgba(255,255,255,0.1)',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    gap: 'var(--space-md)',
+    padding: 'var(--space-md)',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--surface-glass-border)',
   },
   matchImageWrapper: {
-    position: 'relative',
-    width: '110px',
-    height: '110px',
+    width: '90px',
+    height: '90px',
     flexShrink: 0,
+    borderRadius: 'var(--radius-md)',
+    overflow: 'hidden',
   },
   matchImage: {
     width: '100%',
     height: '100%',
-    borderRadius: '16px',
     objectFit: 'cover',
-    border: '2px solid rgba(255,255,255,0.1)',
-  },
-  matchTime: {
-    position: 'absolute',
-    bottom: '6px',
-    left: '6px',
-    background: 'rgba(0,0,0,0.7)',
-    padding: '3px 8px',
-    borderRadius: '8px',
-    fontSize: '10px',
-    color: '#fff',
   },
   matchInfo: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    justifyContent: 'center',
   },
   matchName: {
-    fontSize: '17px',
+    fontSize: 'var(--text-lg)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
     marginBottom: '4px',
   },
   matchBio: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: 'auto',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-muted)',
+    marginBottom: 'var(--space-sm)',
     lineHeight: 1.4,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
   },
   chatBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
+    gap: '6px',
     padding: '10px 16px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: 'var(--radius-md)',
     color: '#fff',
-    fontSize: '14px',
+    fontSize: 'var(--text-sm)',
     fontWeight: 600,
     cursor: 'pointer',
-    marginTop: '10px',
+    alignSelf: 'flex-start',
   },
   emptyState: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '60px 20px',
+    padding: 'var(--space-xxl)',
     textAlign: 'center',
+    minHeight: '300px',
   },
   emptyIcon: {
-    fontSize: '60px',
-    marginBottom: '16px',
+    fontSize: '64px',
+    marginBottom: 'var(--space-md)',
   },
   emptyTitle: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '22px',
-    color: '#fff',
-    marginBottom: '8px',
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: 'var(--text-xl)',
+    color: 'var(--text-primary)',
+    marginBottom: 'var(--space-xs)',
   },
   emptyText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: '15px',
+    color: 'var(--text-muted)',
+    fontSize: 'var(--text-base)',
   },
   premiumBanner: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: '20px',
-    padding: '16px',
-    background: 'linear-gradient(135deg, rgba(233,30,99,0.2), rgba(156,39,176,0.2))',
-    borderRadius: '16px',
-    border: '1px solid rgba(233,30,99,0.3)',
+    marginTop: 'var(--space-md)',
+    padding: 'var(--space-md)',
+    background: 'linear-gradient(135deg, rgba(255, 77, 109, 0.15), rgba(156, 39, 176, 0.15))',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid rgba(255, 77, 109, 0.3)',
   },
   premiumContent: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: 'var(--space-sm)',
   },
   premiumIcon: {
     fontSize: '24px',
   },
   premiumTitle: {
-    fontSize: '15px',
+    fontSize: 'var(--text-base)',
     fontWeight: 600,
-    color: '#fff',
+    color: 'var(--text-primary)',
   },
   premiumText: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
   },
   upgradeBtn: {
     padding: '10px 20px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: 'var(--radius-md)',
     color: '#fff',
-    fontSize: '14px',
+    fontSize: 'var(--text-sm)',
     fontWeight: 600,
     cursor: 'pointer',
   },

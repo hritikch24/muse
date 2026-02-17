@@ -17,16 +17,29 @@ export default function MainLayout() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const getPageTitle = () => {
+    switch(location.pathname) {
+      case '/': return 'Discover';
+      case '/matches': return 'Matches';
+      case '/moments': return 'Moments';
+      case '/profile': return 'Profile';
+      default: return 'Muse';
+    }
+  };
+
   return (
     <div style={styles.container}>
-      {/* Top Bar with Logo */}
-      <div style={styles.topBar}>
+      {/* Top Bar */}
+      <header style={styles.header}>
         <Link to="/" style={styles.logoLink}>
-          <span style={styles.logo}>M<span style={styles.logoAccent}>u</span>se</span>
+          <span style={styles.logo}>
+            M<span style={styles.logoAccent}>u</span>se
+          </span>
         </Link>
-      </div>
+      </header>
 
-      <div style={styles.content}>
+      {/* Main Content */}
+      <main style={styles.content}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -39,8 +52,9 @@ export default function MainLayout() {
             <Outlet />
           </motion.div>
         </AnimatePresence>
-      </div>
+      </main>
 
+      {/* Bottom Navigation */}
       <nav style={styles.nav}>
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -54,10 +68,13 @@ export default function MainLayout() {
             >
               <motion.div
                 whileTap={{ scale: 0.9 }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px', position: 'relative', color: isActive ? '#FF6B9D' : 'rgba(255,255,255,0.6)', textDecoration: 'none', width: '100%' }}
+                style={styles.navItemInner}
               >
                 <div style={styles.iconWrapper}>
-                  <Icon size={22} />
+                  <Icon size={22} style={{ 
+                    color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                    transition: 'color 0.2s ease'
+                  }} />
                   {item.path === '/matches' && unreadCount > 0 && (
                     <motion.span 
                       style={styles.badge}
@@ -71,7 +88,7 @@ export default function MainLayout() {
                 </div>
                 <span style={{
                   ...styles.navLabel,
-                  color: isActive ? '#FF6B9D' : 'rgba(255,255,255,0.6)',
+                  color: isActive ? 'var(--primary)' : 'var(--text-muted)',
                   fontWeight: isActive ? 600 : 400,
                 }}>
                   {item.label}
@@ -97,9 +114,31 @@ const styles = {
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    background: '#1A1A2E',
+    background: 'var(--bg-dark)',
     overflow: 'hidden',
-    paddingTop: 'var(--safe-area-top)',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 20px',
+    paddingTop: 'calc(16px + var(--safe-area-top))',
+    background: 'rgba(13, 13, 13, 0.98)',
+    borderBottom: '1px solid var(--surface-glass-border)',
+    flexShrink: 0,
+    zIndex: 100,
+  },
+  logoLink: {
+    textDecoration: 'none',
+  },
+  logo: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 'var(--text-logo)',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+  },
+  logoAccent: {
+    color: 'var(--primary)',
   },
   content: {
     flex: 1,
@@ -109,49 +148,56 @@ const styles = {
   pageWrapper: {
     height: '100%',
     overflow: 'auto',
+    overflowX: 'hidden',
   },
   nav: {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: '12px 8px calc(24px + var(--safe-area-bottom))',
-    background: 'rgba(26, 26, 46, 0.98)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
-    boxShadow: '0 -4px 30px rgba(0,0,0,0.3)',
+    padding: '12px 8px calc(20px + var(--safe-area-bottom))',
+    background: 'rgba(13, 13, 13, 0.98)',
+    borderTop: '1px solid var(--surface-glass-border)',
+    flexShrink: 0,
+    zIndex: 100,
   },
   navItem: {
+    textDecoration: 'none',
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  navItemInner: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '4px',
-    padding: '8px 16px',
+    padding: '8px 12px',
     position: 'relative',
-    color: 'rgba(255,255,255,0.6)',
-    textDecoration: 'none',
-    minHeight: '48px',
+    minWidth: '56px',
   },
   iconWrapper: {
     position: 'relative',
-    width: '28px',
-    height: '28px',
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
     position: 'absolute',
     top: '-6px',
     right: '-10px',
-    minWidth: '18px',
-    height: '18px',
-    background: '#E91E63',
-    borderRadius: '9px',
-    fontSize: '11px',
+    minWidth: '16px',
+    height: '16px',
+    padding: '0 4px',
+    background: 'var(--primary)',
+    borderRadius: '8px',
+    fontSize: '10px',
     fontWeight: 600,
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0 5px',
   },
   navLabel: {
     fontSize: '11px',
@@ -159,32 +205,10 @@ const styles = {
   },
   activeIndicator: {
     position: 'absolute',
-    bottom: '-12px',
-    width: '24px',
+    bottom: '-8px',
+    width: '20px',
     height: '3px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'var(--primary)',
     borderRadius: '2px',
-  },
-  topBar: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '16px 20px',
-    paddingTop: 'calc(16px + var(--safe-area-top))',
-    background: 'rgba(26, 26, 46, 0.98)',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
-    boxShadow: '0 4px 30px rgba(0,0,0,0.3)',
-  },
-  logoLink: {
-    textDecoration: 'none',
-  },
-  logo: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '28px',
-    fontWeight: 700,
-    color: '#fff',
-    textShadow: '0 2px 20px rgba(233,30,99,0.4)',
-  },
-  logoAccent: {
-    color: '#FF6B9D',
   },
 };
