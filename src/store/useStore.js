@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import { firebaseAuth } from '../firebase/auth';
 
 const getStoredUsers = () => {
   try {
@@ -393,59 +394,32 @@ const useStore = create(
         }));
       },
 
-      login: (email, password) => {
-        const user = findUserByEmail(email);
-        
-        if (!user) {
-          console.log('User not found. Please sign up first.');
-          return false;
+      login: async (email, password) => {
+        const result = await firebaseAuth.login(email, password);
+        if (result.success) {
+          set({ currentUser: result.user, isAuthenticated: true, lastActivity: Date.now() });
+          get().fetchLocation();
+          return true;
         }
-        
-        const hashedInput = hashPassword(password);
-        if (user.password !== hashedInput) {
-          console.log('Invalid password.');
-          return false;
-        }
-        
-        set({ currentUser: user, isAuthenticated: true, lastActivity: Date.now() });
-        get().fetchLocation();
-        return true;
+        console.log('Login failed:', result.error);
+        return false;
       },
 
-      signup: (userData, password) => {
-        const existingUser = findUserByEmail(userData.email);
-        if (existingUser) {
-          console.log('User already exists. Please login.');
-          return false;
+      signup: async (userData, password) => {
+        const result = await firebaseAuth.signup(userData.email, password, userData);
+        if (result.success) {
+          set({ currentUser: result.user, isAuthenticated: true, lastActivity: Date.now() });
+          get().fetchLocation();
+          return true;
         }
-        
-        const now = Date.now();
-        
-        const user = {
-          id: uuidv4(),
-          email: userData.email,
-          password: hashPassword(password),
-          name: userData.name || 'User',
-          age: userData.age || 25,
-          bio: userData.bio || '',
-          photos: userData.photos || ['https://randomuser.me/api/portraits/women/44.jpg'],
-          interests: userData.interests || ['Music', 'Travel', 'Food'],
-          prompts: userData.prompts || [{ question: 'A fact about me', answer: '' }],
-          location: userData.location || 'Your Location',
-          distance: 0,
-          matches: [],
-          likes: [],
-          onboardingCompleted: userData.onboardingCompleted !== undefined ? userData.onboardingCompleted : false
-        };
-        
-        saveUser(user);
-        
-        set({ currentUser: user, isAuthenticated: true, lastActivity: now });
-        get().fetchLocation();
-        return true;
+        console.log('Signup failed:', result.error);
+        return false;
       },
 
-      logout: () => set({ currentUser: null, isAuthenticated: false, lastActivity: null }),
+      logout: async () => {
+        await firebaseAuth.logout();
+        set({ currentUser: null, isAuthenticated: false, lastActivity: null });
+      },
 
       updateLastActivity: () => set({ lastActivity: Date.now() }),
 

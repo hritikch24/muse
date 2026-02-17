@@ -65,7 +65,7 @@ export default function AuthPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -74,47 +74,33 @@ export default function AuthPage() {
     
     setIsLoading(true);
     
-    setTimeout(() => {
-      if (isLogin) {
-        const success = login(email, password);
-        if (success) {
-          navigate('/');
-        } else {
-          const user = findUserByEmail(email.trim().toLowerCase());
-          if (!user) {
-            setErrors({ email: 'No account found. Please sign up first.' });
-          } else {
-            setErrors({ password: 'Incorrect password. Please try again.' });
-          }
-        }
+    if (isLogin) {
+      const success = await login(email, password);
+      if (success) {
+        navigate('/');
       } else {
-        const existingUser = findUserByEmail(email.trim().toLowerCase());
-        if (existingUser) {
-          setErrors({ email: 'An account with this email already exists. Please sign in.' });
-          setIsLoading(false);
-          return;
-        }
-        
-        const success = signup({
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          age: 25,
-          bio: 'Looking for something real',
-          photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
-          interests: ['Music', 'Travel', 'Food'],
-          prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
-          location: 'Your Location',
-          distance: 0,
-          onboardingCompleted: false
-        }, password);
-        if (success) {
-          navigate('/onboarding');
-        } else {
-          setErrors({ email: 'An error occurred. Please try again.' });
-        }
+        setErrors({ email: 'Invalid email or password. Please try again.' });
       }
-      setIsLoading(false);
-    }, 500);
+    } else {
+      const success = await signup({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        age: 25,
+        bio: 'Looking for something real',
+        photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
+        interests: ['Music', 'Travel', 'Food'],
+        prompts: [{ question: 'A fact about me', answer: 'Building this app!' }],
+        location: 'Your Location',
+        distance: 0,
+        onboardingCompleted: false
+      }, password);
+      if (success) {
+        navigate('/onboarding');
+      } else {
+        setErrors({ email: 'An error occurred. Please try again.' });
+      }
+    }
+    setIsLoading(false);
   };
 
   return (
