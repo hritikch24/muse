@@ -779,7 +779,7 @@ const styles = {
   boostBtn: {
     width: '52px',
     height: '52px',
-    background: 'linear-gradient(135deg, var(--accent-gold), #FFA500)',
+    background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold))',
     color: '#fff',
     border: 'none',
   },
@@ -827,7 +827,7 @@ const styles = {
   matchCard: {
     width: '100%',
     maxWidth: '360px',
-    background: 'linear-gradient(135deg, var(--primary), #9C27B0)',
+    background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
     borderRadius: 'var(--radius-xl)',
     padding: 'var(--space-xl)',
     textAlign: 'center',

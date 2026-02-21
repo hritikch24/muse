@@ -179,7 +179,7 @@ export default function ChatPage() {
               )}
               <div style={{
                 ...styles.messageBubble,
-                background: isMe ? 'linear-gradient(135deg, #E91E63, #FF6B9D)' : 'rgba(255,255,255,0.1)',
+                background: isMe ? 'linear-gradient(135deg, var(--primary), var(--primary-light))' : 'var(--surface-glass)',
                 borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
               }}>
                 <p style={styles.messageText}>{msg.text}</p>
@@ -286,7 +286,7 @@ export default function ChatPage() {
               <button style={styles.actionItem} onClick={handleUnmatch}>🔇 Unmatch</button>
               <button style={styles.actionItem} onClick={handleBlock}>🚫 Block</button>
               <button style={styles.actionItem} onClick={handleReport}>⚠️ Report</button>
-              <button style={{...styles.actionItem, color: '#F44336'}} onClick={() => setShowActions(false)}>Cancel</button>
+              <button style={{...styles.actionItem, color: 'var(--accent-error)'}} onClick={() => setShowActions(false)}>Cancel</button>
             </motion.div>
           </motion.div>
         )}
@@ -318,7 +318,7 @@ const styles = {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    background: '#1A1A2E',
+    background: 'var(--surface)',
   },
   header: {
     display: 'flex',
@@ -359,7 +359,7 @@ const styles = {
   },
   headerStatus: {
     fontSize: '13px',
-    color: '#4CAF50',
+    color: 'var(--accent-success)',
   },
   headerActions: {
     display: 'flex',
@@ -442,7 +442,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    color: '#FF6B9D',
+    color: 'var(--primary)',
     fontSize: '13px',
     fontWeight: 500,
   },
@@ -522,7 +522,7 @@ const styles = {
     width: '44px',
     height: '44px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
     color: '#fff',
     display: 'flex',
@@ -540,7 +540,7 @@ const styles = {
   },
   actionSheet: {
     width: '100%',
-    background: '#1A1A2E',
+    background: 'var(--surface)',
     borderTopLeftRadius: '24px',
     borderTopRightRadius: '24px',
     padding: '8px',

@@ -207,7 +207,7 @@ export default function OnboardingPage() {
             initial={false}
             animate={{
               background: index <= currentStep 
-                ? 'linear-gradient(135deg, #E91E63, #FF6B9D)' 
+                ? 'linear-gradient(135deg, var(--primary), var(--primary-light))' 
                 : 'rgba(255,255,255,0.1)',
               width: index <= currentStep ? '100%' : '100%',
             }}
@@ -431,7 +431,7 @@ const styles = {
     letterSpacing: '-2px',
   },
   logoAccent: {
-    color: '#FF6B9D',
+    color: 'var(--primary)',
   },
   progressContainer: {
     display: 'flex',
@@ -502,7 +502,7 @@ const styles = {
     position: 'absolute',
     bottom: '8px',
     left: '8px',
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     padding: '4px 10px',
     borderRadius: '20px',
     fontSize: '11px',
@@ -584,7 +584,7 @@ const styles = {
     transition: 'all 0.2s ease',
   },
   interestChipActive: {
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     borderColor: 'transparent',
     color: '#fff',
   },
@@ -611,7 +611,7 @@ const styles = {
   promptQuestion: {
     fontSize: '15px',
     fontWeight: 600,
-    color: '#FF6B9D',
+    color: 'var(--primary)',
     marginBottom: '12px',
   },
   promptInput: {
@@ -646,20 +646,20 @@ const styles = {
     color: 'rgba(255,255,255,0.8)',
   },
   navBtnNext: {
-    background: 'linear-gradient(135deg, #E91E63, #FF6B9D)',
+    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
     border: 'none',
     color: '#fff',
     boxShadow: '0 4px 20px rgba(233,30,99,0.3)',
   },
   errorText: {
-    color: '#F44336',
+    color: 'var(--accent-error)',
     fontSize: '14px',
     marginTop: '8px',
     textAlign: 'center',
     width: '100%',
   },
   inputError: {
-    border: '1px solid #F44336 !important',
+    border: '1px solid var(--accent-error) !important',
     background: 'rgba(244,67,54,0.1) !important',
   },
   charCount: {
